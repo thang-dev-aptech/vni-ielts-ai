@@ -106,4 +106,43 @@ public sealed class RecordingReconciliationTests
 
         Assert.Equal(3, report.Examined);
     }
+
+    [Fact]
+    public async Task The_sweep_reaches_past_a_batch_it_cannot_remove_yet()
+    {
+        /*
+         * <b>The stuck-sweeper bug, stated as a property.</b> Recordings the
+         * sheet still references are examined and left alone — correctly. But
+         * the store hands back the <i>oldest</i> batch each pass, so once one
+         * full batch of referenced rows exists at the front of the queue,
+         * every later pass re-reads exactly those and never reaches the
+         * orphans behind them. Ten protected rows and a batch of five: the
+         * second pass must still find the orphan, not re-judge the protected.
+         */
+        var (sweep, store, sheets) = Build();
+
+        // Five old takes the sheet still names — protected, forever.
+        for (var i = 0; i < 5; i++)
+        {
+            var id = await UploadAsync(store, $"s-kept-{i}");
+            await sheets.SetAnswerAsync(Sitting, ExamModule.Speaking, $"s-kept-{i}", id, Now, default);
+        }
+
+        // The orphan behind them.
+        var orphan = await UploadAsync(store, "s-orphan");
+
+        var first = await sweep.SweepAsync(TimeSpan.Zero, 5, default);
+        Assert.Equal(5, first.Examined);
+        Assert.Equal(0, first.Orphaned); // the protected batch, judged and left
+
+        // <b>The caller carries the cursor.</b> Without it the second pass
+        // re-reads the protected batch and never reaches the orphan.
+        Assert.NotNull(first.NextCursor);
+        var second = await sweep.SweepAsync(
+            TimeSpan.Zero, 5, default, first.NextCursor);
+
+        Assert.Contains(orphan, store.Deleted);
+        Assert.Equal(1, second.Orphaned);
+        Assert.Equal(1, second.Removed);
+    }
 }

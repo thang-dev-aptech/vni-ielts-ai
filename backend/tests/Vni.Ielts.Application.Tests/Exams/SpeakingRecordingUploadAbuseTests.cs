@@ -356,10 +356,15 @@ public sealed class SpeakingRecordingUploadAbuseTests
         public Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanAsync(
             DateTimeOffset olderThan, int limit, CancellationToken ct) =>
             Task.FromResult<IReadOnlyList<SpeakingRecordingMetadata>>([]);
+
+        public Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanLinkedAsync(
+            DateTimeOffset olderThan, int limit, CancellationToken ct,
+            StoredRecording? after) =>
+            Task.FromResult<IReadOnlyList<SpeakingRecordingMetadata>>([]);
     }
 
     private sealed class FixedClock(DateTimeOffset now) : IClock
-    {
-        public DateTimeOffset UtcNow => now;
+    {        public DateTimeOffset UtcNow => now;
     }
 }
+

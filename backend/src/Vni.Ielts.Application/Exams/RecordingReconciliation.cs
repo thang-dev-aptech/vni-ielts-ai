@@ -1,5 +1,6 @@
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
+using Vni.Ielts.Domain.Sessions;
 
 namespace Vni.Ielts.Application.Exams;
 
@@ -57,8 +58,17 @@ public sealed class RecordingReconciliation(
     /// of every recording the product has ever stored, holding a connection for
     /// as long as that takes.
     /// </param>
+    /// <param name="after">
+    /// <b>The cursor that keeps the sweep moving.</b> The store hands back the
+    /// oldest batch each pass; rows the sheet still references are examined
+    /// and left — correctly — but left at the front of that queue. Without a
+    /// cursor, one full batch of referenced rows makes every later pass
+    /// re-read exactly those and never reach the orphans behind them: the
+    /// sweep spins forever, and its report always says it examined the same
+    /// five things. The caller carries the last examined row across passes.
+    /// </param>
     public async Task<ReconciliationReport> SweepAsync(
-        TimeSpan minimumAge, int limit, CancellationToken ct)
+        TimeSpan minimumAge, int limit, CancellationToken ct, StoredRecording? after = null)
     {
         // Pending inits whose PUT window elapsed — before the orphan sweep so
         // a abandoned row is not later mistaken for a Linked orphan.
@@ -67,7 +77,7 @@ public sealed class RecordingReconciliation(
             stale = await abortStale.HandleAsync(limit, ct);
 
         var cutoff = clock.UtcNow - minimumAge;
-        var candidates = await recordings.ListOlderThanAsync(cutoff, limit, ct);
+        var candidates = await recordings.ListOlderThanAsync(cutoff, limit, ct, after);
 
         var examined = 0;
         var orphaned = 0;
@@ -119,7 +129,8 @@ public sealed class RecordingReconciliation(
 
         return new ReconciliationReport(
             examined, orphaned, removed, failed,
-            stale?.Abandoned ?? 0, stale?.ObjectsRemoved ?? 0);
+            stale?.Abandoned ?? 0, stale?.ObjectsRemoved ?? 0,
+            candidates.Count > 0 ? candidates.Last() : after);
     }
 }
 
@@ -142,4 +153,5 @@ public sealed record ReconciliationReport(
     int Removed,
     int Failed,
     int StaleUploadsAbandoned = 0,
-    int StaleObjectsRemoved = 0);
+    int StaleObjectsRemoved = 0,
+    StoredRecording? NextCursor = null);

@@ -236,7 +236,7 @@ public sealed class ExamLifecycleTests
             Start = new StartExamSession(Catalogue, Sessions, Clock);
             Get = new GetExamSession(Catalogue, Sessions, Answers, Results, Marker, Clock);
             Save = new SaveAnswers(Catalogue, Sessions, Answers, Clock);
-            Record = new SubmitSpeakingRecording(Catalogue, Sessions, Answers, Recordings, Clock);
+            Record = new SubmitSpeakingRecording(Catalogue, Sessions, Answers, Recordings, new TakeIsolationMetadata(), Clock);
             Advance = new AdvanceSection(
                 Catalogue, Sessions, Answers, Results, Marker, Outbox, Rubrics, Clock);
             Submit = new SubmitExamSession(

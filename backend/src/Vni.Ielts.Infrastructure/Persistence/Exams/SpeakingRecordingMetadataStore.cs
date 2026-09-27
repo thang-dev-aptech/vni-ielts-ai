@@ -170,6 +170,41 @@ internal sealed class MongoSpeakingRecordingMetadataStore(IMongoDatabase databas
         return docs.ConvertAll(FromDoc);
     }
 
+    public async Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanLinkedAsync(
+        DateTimeOffset olderThan, int limit, CancellationToken ct,
+        StoredRecording? after)
+    {
+        // Linked rows only, cursor in the query — the sweep's pagination. The
+        // tiebreak on RecordingId makes the order total, so a cursor cannot
+        // skip a row two rows share a CreatedAt with.
+        var filter = Builders<SpeakingRecordingDocument>.Filter.And(
+            Builders<SpeakingRecordingDocument>.Filter.Eq(
+                d => d.Status, nameof(SpeakingRecordingStatus.Linked)),
+            Builders<SpeakingRecordingDocument>.Filter.Lt(d => d.CreatedAt, olderThan.UtcDateTime));
+
+        if (after is { } cursor)
+        {
+            filter = Builders<SpeakingRecordingDocument>.Filter.And(
+                filter,
+                Builders<SpeakingRecordingDocument>.Filter.Or(
+                    Builders<SpeakingRecordingDocument>.Filter.Gt(
+                        d => d.CreatedAt, cursor.UploadedAt.UtcDateTime),
+                    Builders<SpeakingRecordingDocument>.Filter.And(
+                        Builders<SpeakingRecordingDocument>.Filter.Eq(
+                            d => d.CreatedAt, cursor.UploadedAt.UtcDateTime),
+                        Builders<SpeakingRecordingDocument>.Filter.Gt(
+                            d => d.RecordingId, cursor.RecordingId))));
+        }
+
+        var docs = await _collection
+            .Find(filter)
+            .SortBy(d => d.CreatedAt).ThenBy(d => d.RecordingId)
+            .Limit(limit)
+            .ToListAsync(ct);
+
+        return docs.ConvertAll(FromDoc);
+    }
+
     internal static async Task EnsureIndexesAsync(IMongoDatabase database, CancellationToken ct)
     {
         var collection = database.GetCollection<SpeakingRecordingDocument>("speaking_recording_uploads");

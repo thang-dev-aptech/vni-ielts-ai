@@ -239,5 +239,11 @@ public sealed class SpeakingRecordingPlaybackTests
         public Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanAsync(
             DateTimeOffset olderThan, int limit, CancellationToken ct) =>
             Task.FromResult<IReadOnlyList<SpeakingRecordingMetadata>>([]);
+
+        public Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanLinkedAsync(
+            DateTimeOffset olderThan, int limit, CancellationToken ct,
+            StoredRecording? after) =>
+            Task.FromResult<IReadOnlyList<SpeakingRecordingMetadata>>([]);
     }
 }
+

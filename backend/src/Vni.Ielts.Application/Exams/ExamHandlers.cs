@@ -1194,6 +1194,7 @@ public sealed class SubmitSpeakingRecording(
     IExamSessionRepository sessions,
     IAnswerSheetStore answers,
     IRecordingStore recordings,
+    ISpeakingRecordingMetadataStore metadata,
     IClock clock)
 {
     public async Task<string> HandleAsync(
@@ -1267,6 +1268,33 @@ public sealed class SubmitSpeakingRecording(
 
             throw;
         }
+
+        /*
+         * <b>The legacy route files a row, like the presigned one.</b> Without
+         * it the recording was invisible: playback had nothing to resolve a
+         * presigned URL against, the purge had nothing to find (so learner
+         * voice survived an account deletion the audit trail believed had
+         * removed it), and the sweep could only reach the object through the
+         * answer sheet. The row is written after the sheet accepts — a
+         * refused upload files nothing, because its bytes are already gone.
+         */
+        await metadata.InsertAsync(
+            new SpeakingRecordingMetadata(
+                UploadId: Guid.NewGuid().ToString("N"),
+                RecordingId: recordingId,
+                ObjectKey: SpeakingRecordingKey.Prefix + recordingId,
+                OwnerId: command.UserId,
+                SessionId: command.SessionId,
+                QuestionId: command.QuestionId,
+                ContentType: command.ContentType,
+                ExpectedSizeBytes: null,
+                ExpectedChecksumSha256: null,
+                ActualSizeBytes: null,
+                ActualChecksumSha256: null,
+                Status: SpeakingRecordingStatus.Linked,
+                CreatedAt: now,
+                RetentionExpiresAt: null,
+                LinkedAt: now), ct);
 
         return recordingId;
     }

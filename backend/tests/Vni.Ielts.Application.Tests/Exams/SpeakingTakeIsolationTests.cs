@@ -322,6 +322,11 @@ internal sealed class TakeIsolationMetadata : ISpeakingRecordingMetadataStore
     public Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanAsync(
         DateTimeOffset olderThan, int limit, CancellationToken ct) =>
         Task.FromResult<IReadOnlyList<SpeakingRecordingMetadata>>([]);
+
+    public Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanLinkedAsync(
+        DateTimeOffset olderThan, int limit, CancellationToken ct,
+        StoredRecording? after) =>
+        Task.FromResult<IReadOnlyList<SpeakingRecordingMetadata>>([]);
 }
 
 internal sealed class TakeIsolationBlobs : ISpeakingRecordingBlobStore
@@ -403,5 +408,6 @@ internal sealed class ClosingAnswers : IAnswerSheetStore
         return Task.FromResult(new AnswerSheet(Saved, 1));
     }
 }
+
 
 

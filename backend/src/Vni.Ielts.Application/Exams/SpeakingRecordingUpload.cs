@@ -192,6 +192,16 @@ public interface ISpeakingRecordingMetadataStore
 
     Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanAsync(
         DateTimeOffset olderThan, int limit, CancellationToken ct);
+
+    /// <summary>
+    /// Linked rows older than the cutoff, ordered by (createdAt, recordingId),
+    /// at or after the cursor. The stable ordering is the contract: a cursor
+    /// over an unstable order can skip a row the sort shuffled behind it. The
+    /// cursor is the recording the last pass examined — the same shape the
+    /// sweep carries, so no caller has to know how the store keys its rows.
+    /// </summary>
+    Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanLinkedAsync(
+        DateTimeOffset olderThan, int limit, CancellationToken ct, StoredRecording? after);
 }
 
 public interface ISpeakingRecordingBlobStore

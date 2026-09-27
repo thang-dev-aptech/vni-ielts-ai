@@ -183,12 +183,17 @@ internal sealed class S3SpeakingRecordingStore(
     }
 
     public async Task<IReadOnlyList<StoredRecording>> ListOlderThanAsync(
-        DateTimeOffset olderThan, int limit, CancellationToken ct)
+        DateTimeOffset olderThan, int limit, CancellationToken ct, StoredRecording? after = null)
     {
-        var rows = await metadata.ListOlderThanAsync(olderThan, limit, ct);
+        /*
+         * The cursor filter is applied <i>in the store</i>, not after the
+         * limit: the point of the cursor is that the next batch starts past
+         * the rows the last pass already judged, and filtering after taking
+         * a limit is exactly the bug that made the sweep spin.
+         */
+        var rows = await metadata.ListOlderThanLinkedAsync(olderThan, limit, ct, after);
 
         return rows
-            .Where(r => r.Status == SpeakingRecordingStatus.Linked)
             .Select(r => new StoredRecording(
                 r.RecordingId, r.SessionId, r.QuestionId, r.CreatedAt))
             .ToArray();

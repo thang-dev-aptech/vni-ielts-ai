@@ -425,6 +425,11 @@ public sealed class SpeakingRecordingRemainderTests
             DateTimeOffset olderThan, int limit, CancellationToken ct) =>
             Task.FromResult<IReadOnlyList<SpeakingRecordingMetadata>>(
                 [.. Rows.Where(r => r.CreatedAt < olderThan).Take(limit)]);
+
+        public Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanLinkedAsync(
+            DateTimeOffset olderThan, int limit, CancellationToken ct,
+            StoredRecording? after) =>
+            Task.FromResult<IReadOnlyList<SpeakingRecordingMetadata>>([]);
     }
 
     private sealed class FakeSpeakingBlobStore : ISpeakingRecordingBlobStore
@@ -477,3 +482,4 @@ public sealed class SpeakingRecordingRemainderTests
             Task.FromResult<(IReadOnlyList<AuditEntry>, long)>((Entries, Entries.Count));
     }
 }
+

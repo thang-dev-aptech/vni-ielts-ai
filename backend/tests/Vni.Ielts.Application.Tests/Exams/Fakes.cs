@@ -271,11 +271,33 @@ internal sealed class FakeRecordingStore : IRecordingStore
 
     public Task<IReadOnlyList<StoredRecording>> ListOlderThanAsync(
         DateTimeOffset olderThan, int limit, CancellationToken ct) =>
-        Task.FromResult<IReadOnlyList<StoredRecording>>(
-            [.. Saved
-                .Take(limit)
-                .Select(s => new StoredRecording(
-                    s.Id, s.SessionId, s.QuestionId, DateTimeOffset.UnixEpoch))]);
+        ListOlderThanAsync(olderThan, limit, ct, null);
+
+    /// <summary>
+    /// Cursor applied in the store, before the limit — the same rule the real
+    /// Mongo stores keep, because a fake that paginated differently would let
+    /// a sweep pass here and spin in production.
+    /// </summary>
+    public Task<IReadOnlyList<StoredRecording>> ListOlderThanAsync(
+        DateTimeOffset olderThan, int limit, CancellationToken ct, StoredRecording? after)
+    {
+        var rows = Saved
+            .Select(s => new StoredRecording(s.Id, s.SessionId, s.QuestionId, DateTimeOffset.UnixEpoch))
+            .OrderBy(r => r.UploadedAt)
+            .ThenBy(r => r.RecordingId, StringComparer.Ordinal);
+
+        if (after is { } cursor)
+        {
+            rows = rows
+                .Where(r => r.UploadedAt > cursor.UploadedAt
+                    || (r.UploadedAt == cursor.UploadedAt
+                        && string.CompareOrdinal(r.RecordingId, cursor.RecordingId) > 0))
+                .OrderBy(r => r.UploadedAt)
+                .ThenBy(r => r.RecordingId, StringComparer.Ordinal);
+        }
+
+        return Task.FromResult<IReadOnlyList<StoredRecording>>([.. rows.Take(limit)]);
+    }
 }
 
 /// <summary>
