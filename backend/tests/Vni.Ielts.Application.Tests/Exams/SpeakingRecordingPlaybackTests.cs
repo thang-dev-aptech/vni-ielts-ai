@@ -112,11 +112,40 @@ public sealed class SpeakingRecordingPlaybackTests
 
             return new Env
             {
-                Handler = new GetSpeakingRecordingPlaybackUrl(catalogue, sessions, blobs, metadata, clock),
+                Handler = new GetSpeakingRecordingPlaybackUrl(
+                    catalogue, sessions, blobs, metadata, new SheetStore(), clock),
                 Blobs = blobs,
                 ObjectKey = objectKey,
             };
         }
+    }
+
+    /// <summary>An empty sheet — no take filed through it in these tests.</summary>
+    private sealed class SheetStore : IAnswerSheetStore
+    {
+        public Task<IReadOnlyDictionary<string, string?>> LoadAsync(
+            ExamSessionId sessionId, ExamModule module, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyDictionary<string, string?>>(
+                new Dictionary<string, string?>());
+
+        public Task<AnswerSheet> ReadAsync(
+            ExamSessionId sessionId, ExamModule module, CancellationToken ct) =>
+            Task.FromResult(AnswerSheet.Empty);
+
+        public Task SetAnswerAsync(
+            ExamSessionId sessionId, ExamModule module, string questionId, string? value,
+            DateTimeOffset at, CancellationToken ct) => Task.CompletedTask;
+
+        public Task<PatchedSheet> PatchAsync(
+            ExamSessionId sessionId, ExamModule module,
+            IReadOnlyDictionary<string, string?> changes,
+            DateTimeOffset at, CancellationToken ct,
+            IReadOnlyDictionary<string, long>? sequences = null) =>
+            Task.FromResult(new PatchedSheet(AnswerSheet.Empty, 0));
+
+        public Task<AnswerSheet> CloseAsync(
+            ExamSessionId sessionId, ExamModule module, DateTimeOffset at, CancellationToken ct) =>
+            Task.FromResult(AnswerSheet.Empty);
     }
 
     private static ExamVersion SpeakingVersion()

@@ -68,8 +68,9 @@ public sealed class SpeakingRecordingUploadTests
         var sheet = await env.Answers.ReadAsync(env.SessionId, ExamModule.Speaking, default);
         Assert.Equal(recordingId, sheet.Answers[env.QuestionId]);
 
+        // The take's own key — the id reconstructs the storage location.
         var head = await env.Blobs.HeadAsync(
-            SpeakingRecordingKey.For(env.SessionId, env.QuestionId), default);
+            SpeakingRecordingKey.Prefix + recordingId, default);
         Assert.NotNull(head);
         Assert.Equal(bytes.Length, head!.ContentLength);
         Assert.Equal(checksum, head.ChecksumSha256);
@@ -159,7 +160,7 @@ public sealed class SpeakingRecordingUploadTests
     }
 
     [SkippableFact]
-    public async Task Re_record_replaces_object_under_same_derived_key()
+    public async Task A_re_record_files_under_its_own_key_and_the_sheet_moves_to_the_new_take()
     {
         Skip.IfNot(MinioAvailable, SkipReason);
 
@@ -168,7 +169,6 @@ public sealed class SpeakingRecordingUploadTests
         var second = Encoding.UTF8.GetBytes("second-take-replaces");
         var firstChecksum = Convert.ToHexStringLower(SHA256.HashData(first));
         var secondChecksum = Convert.ToHexStringLower(SHA256.HashData(second));
-        var objectKey = SpeakingRecordingKey.For(env.SessionId, env.QuestionId);
 
         var init1 = await env.Init.HandleAsync(
             new InitSpeakingRecordingCommand(
@@ -195,7 +195,9 @@ public sealed class SpeakingRecordingUploadTests
                 second.Length, secondChecksum),
             default);
 
-        Assert.Equal(init1.RecordingId, init2.RecordingId);
+        // <b>Different keys per take</b> — the shared derived key was the bug
+        // that let a re-take overwrite a filed answer's audio.
+        Assert.NotEqual(init1.RecordingId, init2.RecordingId);
         Assert.Equal("presigned", init2.UploadMode);
 
         using (var put = new ByteArrayContent(second))
@@ -210,11 +212,20 @@ public sealed class SpeakingRecordingUploadTests
                 env.UserId, env.SessionId, init2.UploadId, second.Length, secondChecksum),
             default);
 
-        var head = await env.Blobs.HeadAsync(objectKey, default);
+        // The second take's bytes are at the second take's key.
+        var head = await env.Blobs.HeadAsync(
+            SpeakingRecordingKey.Prefix + init2.RecordingId, default);
         Assert.NotNull(head);
         Assert.Equal(second.Length, head!.ContentLength);
         Assert.Equal(secondChecksum, head.ChecksumSha256);
 
+        // The first take's bytes are still at theirs — nothing overwrote them.
+        var firstHead = await env.Blobs.HeadAsync(
+            SpeakingRecordingKey.Prefix + init1.RecordingId, default);
+        Assert.NotNull(firstHead);
+        Assert.Equal(firstChecksum, firstHead!.ChecksumSha256);
+
+        // And the sheet points at the newest take.
         var sheet = await env.Answers.ReadAsync(env.SessionId, ExamModule.Speaking, default);
         Assert.Equal(init2.RecordingId, sheet.Answers[env.QuestionId]);
     }

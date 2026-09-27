@@ -107,15 +107,24 @@ internal static class SpeakingRecordingGate
 }
 
 /// <summary>
-/// Derives the stable object key for one question's recording.
+/// Derives the storage locations for a Speaking recording.
 ///
-/// Hashed from session and question so retries and re-records replace rather
-/// than accumulate orphaned learner voice data.
+/// <b>Two shapes, and both are load-bearing.</b> The single-segment key
+/// (<c>recordings/&lt;hash&gt;</c>) is the pre-2026-09-21 layout: derived from
+/// session + question, so a re-record <i>replaced</i> the previous bytes
+/// rather than accumulating orphaned learner voice. That same collision was
+/// the take-isolation bug — a retake could overwrite an answer already filed,
+/// and the refused-take cleanup deleted the id the frozen answer held — so
+/// every presigned take now files under its own key
+/// (<c>recordings/&lt;hash&gt;/&lt;uploadId&gt;</c>) and the answer sheet is
+/// pointed at that id on complete. The legacy shape stays valid so anything
+/// already stored keeps deleting and playing back.
 /// </summary>
 public static class SpeakingRecordingKey
 {
     public const string Prefix = "recordings/";
 
+    /// <summary>The per-question group component — the legacy whole key.</summary>
     public static string For(ExamSessionId sessionId, string questionId)
     {
         var material = System.Text.Encoding.UTF8.GetBytes($"{sessionId.Value}\u0000{questionId}");
@@ -124,7 +133,16 @@ public static class SpeakingRecordingKey
     }
 
     /// <summary>
-    /// The id stored on the answer sheet — the hash without the prefix.
+    /// One take's own key: the question's group hash, then the upload id.
+    /// Nothing else writes here, so a refused or stale take's bytes can be
+    /// removed without ever touching a sibling's.
+    /// </summary>
+    public static string ForObject(ExamSessionId sessionId, string questionId, string uploadId) =>
+        $"{Prefix}{For(sessionId, questionId)[Prefix.Length..]}/{uploadId}";
+
+    /// <summary>
+    /// The id stored on the answer sheet — the object key without the prefix,
+    /// so the sheet's value reconstructs the storage location for both shapes.
     /// </summary>
     public static string RecordingIdFor(ExamSessionId sessionId, string questionId) =>
         For(sessionId, questionId)[Prefix.Length..];
@@ -133,8 +151,15 @@ public static class SpeakingRecordingKey
     {
         if (!key.StartsWith(Prefix, StringComparison.Ordinal)) return false;
         var tail = key[Prefix.Length..];
-        if (tail.Length != 32) return false;
-        return tail.All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f');
+
+        // One segment is the legacy key; two is the per-upload take. Every
+        // segment must be 32 lowercase hex — nothing a question id or an
+        // attacker-supplied path could smuggle through.
+        var segments = tail.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        return segments.Length is 1 or 2
+            && segments.All(s =>
+                s.Length == 32
+                && s.All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f'));
     }
 }
 
@@ -240,13 +265,12 @@ public sealed class InitSpeakingRecording(
         SpeakingRecordingGate.EnsureUploadAllowed(
             session, version, command.QuestionId, clock.UtcNow);
 
-        var objectKey = SpeakingRecordingKey.For(command.SessionId, command.QuestionId);
-        var recordingId = SpeakingRecordingKey.RecordingIdFor(command.SessionId, command.QuestionId);
         var now = clock.UtcNow;
 
         // Re-record / retry: abandon any prior pending init for this question
-        // so a stale complete cannot race the new revision. The object key is
-        // derived, so the next PUT replaces bytes rather than orphaning them.
+        // so a stale complete cannot race the new revision. Each take now
+        // files under its own key, so the old take's stored bytes — the ones
+        // a filed answer may point at — are never in this PUT's path.
         await metadata.MarkAbandonedForQuestionAsync(command.SessionId, command.QuestionId, ct);
 
         if (command.SizeBytes > MultipartThresholdBytes)
@@ -256,7 +280,7 @@ public sealed class InitSpeakingRecording(
             // presigned row is created.
             return new InitSpeakingRecordingResult(
                 string.Empty,
-                recordingId,
+                SpeakingRecordingKey.RecordingIdFor(command.SessionId, command.QuestionId),
                 null,
                 now,
                 command.ContentType,
@@ -265,6 +289,13 @@ public sealed class InitSpeakingRecording(
         }
 
         var uploadId = Guid.NewGuid().ToString("N");
+
+        // One take, one key. Two takes at the same question never collide —
+        // which is what keeps a re-take's PUT from overwriting the audio an
+        // already-filed answer points at.
+        var objectKey = SpeakingRecordingKey.ForObject(
+            command.SessionId, command.QuestionId, uploadId);
+        var recordingId = objectKey[SpeakingRecordingKey.Prefix.Length..];
 
         DateTimeOffset? retention = storage.RetentionDays is { } days
             ? now.AddDays(days)
@@ -287,11 +318,24 @@ public sealed class InitSpeakingRecording(
             retention,
             null), ct);
 
+        // The presigned window cannot outlive the section: a link that survives
+        // the deadline is a window in which a learner answer can still be
+        // written to after the sheet is frozen. The floor keeps a deadline one
+        // second away from minting a zero-lifetime URL — the gate has already
+        // refused a past deadline, so the remainder is positive.
+        var ttl = UploadTtl;
+        if (session.Current?.DeadlineAt is { } deadlineAt)
+        {
+            var remaining = deadlineAt - now;
+            if (remaining < ttl)
+                ttl = remaining > TimeSpan.FromSeconds(1) ? remaining : TimeSpan.FromSeconds(1);
+        }
+
         var uploadUrl = blobs.CreatePresignedPutUrl(
-            objectKey, command.ContentType, command.ChecksumSha256.ToLowerInvariant(), UploadTtl);
+            objectKey, command.ContentType, command.ChecksumSha256.ToLowerInvariant(), ttl);
 
         return new InitSpeakingRecordingResult(
-            uploadId, recordingId, uploadUrl, now.Add(UploadTtl), command.ContentType,
+            uploadId, recordingId, uploadUrl, now.Add(ttl), command.ContentType,
             "presigned", MultipartThresholdBytes);
     }
 
@@ -357,6 +401,14 @@ public sealed class CompleteSpeakingRecording(
         }
         catch (SectionSheetClosedException)
         {
+            /*
+             * <b>Only this take's bytes go.</b> The id is per-upload, so the
+             * tidy-up cannot reach the audio an already-filed answer points
+             * at — under the shared derived key it deleted exactly the id the
+             * frozen answer held, which is how a lost race erased a submitted
+             * answer's voice. What is removed here is the refused take's own
+             * unfiled upload — the orphan this branch exists to prevent.
+             */
             try
             {
                 await recordings.DeleteAsync(row.RecordingId, ct);
@@ -389,6 +441,7 @@ public sealed class GetSpeakingRecordingPlaybackUrl(
     IExamSessionRepository sessions,
     ISpeakingRecordingBlobStore blobs,
     ISpeakingRecordingMetadataStore metadata,
+    IAnswerSheetStore answers,
     IClock clock)
 {
     /// <summary>
@@ -409,8 +462,24 @@ public sealed class GetSpeakingRecordingPlaybackUrl(
         await sessions.LoadOwnedAsync(catalogue, command.SessionId, command.UserId, ct);
 
         var rows = await metadata.ListBySessionAsync(command.SessionId, ct);
-        var row = rows.FirstOrDefault(r =>
-                r.QuestionId == command.QuestionId && r.Status == SpeakingRecordingStatus.Linked)
+        var linked = rows
+            .Where(r => r.QuestionId == command.QuestionId && r.Status == SpeakingRecordingStatus.Linked)
+            .ToArray();
+
+        // <b>Resolve through the sheet.</b> Takes are keyed per upload now, so
+        // more than one take can be Linked at a question — the re-take that
+        // filed after the first. What the learner recorded <i>last and
+        // submitted</i> is what the sheet names, and that is the take that
+        // must play — whichever row happens to enumerate first.
+        var sheet = await answers.ReadAsync(command.SessionId, ExamModule.Speaking, ct);
+        var filedId = sheet.Answers.GetValueOrDefault(command.QuestionId);
+
+        var row = (filedId is { } id
+                ? linked.FirstOrDefault(r => r.RecordingId == id)
+                : null)
+            ?? linked
+                .OrderByDescending(r => r.LinkedAt ?? r.CreatedAt)
+                .FirstOrDefault()
             ?? throw new SpeakingRecordingUploadNotFoundException();
 
         var url = blobs.CreatePresignedGetUrl(row.ObjectKey, PlaybackTtl);

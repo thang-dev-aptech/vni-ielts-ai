@@ -94,7 +94,12 @@ public sealed class SpeakingRecordingRemainderTests
 
         Assert.Equal("presigned", second.UploadMode);
         Assert.Equal(SpeakingRecordingStatus.Abandoned, metadata.Find(first.UploadId)!.Status);
-        Assert.Equal(first.ObjectKey, metadata.Find(second.UploadId)!.ObjectKey);
+        // Each take files under its own key now — the shared derived key was
+        // the overwrite bug (a re-take could replace an already-filed
+        // answer's audio). The abandoned take's bytes are the orphan
+        // sweeper's job, which deletes by its own key when nothing linked
+        // claims it.
+        Assert.NotEqual(first.ObjectKey, metadata.Find(second.UploadId)!.ObjectKey);
     }
 
     [Fact]
