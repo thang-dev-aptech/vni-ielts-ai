@@ -1,42 +1,16 @@
-/* Module pages inside the student shell.
+/* Dashboard-style page heads.
  *
- * The public pages were built as long marketing pages: full-bleed heroes,
- * intro copy, FAQ, closing CTA. Inside the sidebar shell a signed-in learner
- * gets the working part of each page under a dashboard heading. These rules
- * make that working part sit like the dashboard does — same measure, same
- * padding, same background — without rewriting every page's own stylesheet.
+ * `.page-head` is the heading block a page shows when it renders inside the
+ * student dashboard shell (`/students/practice` and its detail pages) —
+ * eyebrow, title, one line of lead, in place of a marketing hero.
+ *
+ * Dictation, documents and articles used to switch into this same shape
+ * when signed in, dispatched by a since-removed `AppShell` component that
+ * put them inside the shell (`.shell-body .app-page`, 04/09/2026, reverted
+ * the same day). That per-page switch outlived the shell it was styled for
+ * and was removed 28/09/2026 — those three pages render one way now,
+ * regardless of sign-in state, same as every other module page.
  */
-
-.shell-body .app-page {
-  flex: 1;
-  width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: var(--s-6) var(--s-5) var(--s-8);
-  box-sizing: border-box;
-  color: var(--ink);
-}
-
-.shell-body .app-page > .container,
-.shell-body .app-page .prac-work > .container,
-.shell-body .app-page .dict-lib-band > .container,
-.shell-body .app-page .res-lib-band > .container {
-  max-width: none;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-/* The bands that framed each library on the public page. Inside the shell
-   the page background is the frame. */
-.shell-body .app-page .prac-work,
-.shell-body .app-page .dict-lib-band,
-.shell-body .app-page .res-lib-band,
-.shell-body .app-page .art-toolbar-band,
-.shell-body .app-page .page-body {
-  padding-top: 0;
-  padding-bottom: 0;
-  background: transparent;
-}
 
 .page-head {
   display: flex;
