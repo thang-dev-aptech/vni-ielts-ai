@@ -451,7 +451,7 @@ public sealed class ExamRunContractTests(ExamAppFactory app) : IClassFixture<Exa
 
         var audio = new ByteArrayContent(
             sizeBytes > 0
-                ? new byte[sizeBytes]
+                ? AudioBytesOf(sizeBytes)
                 : Convert.FromBase64String("T2dnUwACAAAAAAAAAAA="));
         audio.Headers.ContentType = new MediaTypeHeaderValue(contentType);
 
@@ -463,6 +463,20 @@ public sealed class ExamRunContractTests(ExamAppFactory app) : IClassFixture<Exa
 
         request.Content = form;
         return await client.SendAsync(request);
+    }
+
+    /// <summary>
+    /// An ID3-headed payload of exactly <paramref name="sizeBytes"/> bytes: the
+    /// server sniffs the upload, so a zero-filled body would be refused as
+    /// non-audio before its size was even considered.
+    /// </summary>
+    private static byte[] AudioBytesOf(int sizeBytes)
+    {
+        var bytes = new byte[sizeBytes];
+        bytes[0] = 0x49; // I
+        bytes[1] = 0x44; // D
+        bytes[2] = 0x33; // 3
+        return bytes;
     }
 
     private async Task<JsonElement> GetSessionAsync(

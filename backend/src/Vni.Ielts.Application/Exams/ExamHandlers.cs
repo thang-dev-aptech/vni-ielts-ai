@@ -1221,10 +1221,37 @@ public sealed class SubmitSpeakingRecording(
                 "That question is not part of this exam's Speaking section.",
                 nameof(command));
 
-        var recordingId = await recordings.SaveAsync(
-            command.SessionId, command.QuestionId, command.Content, command.ContentType, ct);
+        // <b>Sniff the head, like every other upload.</b> The declared type is
+        // a label; the bytes decide what this is. A non-audio payload is
+        // refused before a byte is stored - the same rule the CMS media
+        // library and the presigned path apply.
+        var probe = new byte[Vni.Ielts.Application.Media.MediaSniffer.ProbeLength];
+        var probed = await command.Content.ReadAtLeastAsync(
+            probe, probe.Length, throwOnEndOfStream: false, ct);
+        var sniffed = Vni.Ielts.Application.Media.MediaSniffer.Sniff(probe.AsSpan(0, probed));
+        if (sniffed is null || sniffed.Kind != Vni.Ielts.Application.Media.MediaKind.Audio)
+            throw new SpeakingRecordingNotAudioException();
 
-        /*
+        var content = command.Content;
+        if (command.Content.CanSeek)
+        {
+            command.Content.Position = 0;
+        }
+        else
+        {
+            // A non-seekable stream has consumed its head; spool the whole file
+            // behind the probe so the store still receives everything.
+            var rest = new MemoryStream();
+            await rest.WriteAsync(probe.AsMemory(0, probed), ct);
+            await command.Content.CopyToAsync(rest, ct);
+            rest.Position = 0;
+            content = rest;
+        }
+
+        var recordingId = await recordings.SaveAsync(
+            command.SessionId, command.QuestionId, content, command.ContentType, ct);
+
+                /*
          * ── Finalisation, and what happens when it is refused ──────────────
          *
          * <b>An upload is two writes, and the checks above were made before the
@@ -2055,3 +2082,5 @@ internal static class SessionProjection
         return (BandScore.Weighted([(task1.Band, weights.Task1), (task2.Band, weights.Task2)]), null);
     }
 }
+
+

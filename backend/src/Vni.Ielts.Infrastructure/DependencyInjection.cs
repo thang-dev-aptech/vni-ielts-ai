@@ -109,6 +109,8 @@ public static class DependencyInjection
             new RecordingReconciliation(
                 sp.GetRequiredService<IRecordingStore>(),
                 sp.GetRequiredService<IAnswerSheetStore>(),
+                sp.GetRequiredService<ISpeakingRecordingMetadataStore>(),
+                sp.GetRequiredService<ISpeakingRecordingBlobStore>(),
                 sp.GetRequiredService<AbortStaleSpeakingUploads>(),
                 sp.GetRequiredService<IClock>()));
         services.AddScoped<PurgeSpeakingRecordings>();

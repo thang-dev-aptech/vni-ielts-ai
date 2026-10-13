@@ -85,13 +85,18 @@ public sealed class SpeakingTakeIsolationTests
 
         // Take one is completed and filed; the sheet carries its id.
         var first = await env.Init("audio/webm");
+        await env.Upload(first);
         await env.Complete(first.UploadId, 3, Env.Checksum);
         var filedId = env.SheetValue(SpeakingFixtures.QuestionId);
 
         // The section freezes behind the handler's back — the retake that was
-        // already open now arrives at a closed sheet.
+        // already open now arrives at a closed sheet. Its bytes are in
+        // storage, as they would be: the PUT completed before the freeze.
         env.Answers.Closed = true;
         var second = await env.Init("audio/webm");
+        await env.Blobs.PutAsync(
+            SpeakingRecordingKey.Prefix + second.RecordingId,
+            new MemoryStream([0x49, 0x44, 0x33]), "audio/webm", Env.Checksum, default);
 
         await Assert.ThrowsAsync<SectionSheetClosedException>(() =>
             env.Complete(second.UploadId, 3, Env.Checksum));
@@ -113,11 +118,13 @@ public sealed class SpeakingTakeIsolationTests
         var env = Env.Create(deadline: null);
 
         var first = await env.Init("audio/webm");
+        await env.Upload(first);
         await env.Complete(first.UploadId, 3, Env.Checksum);
 
         // A second take files after the first — both rows are Linked, and the
         // sheet points at the second. Playback must follow the sheet.
         var second = await env.Init("audio/webm");
+        await env.Upload(second);
         await env.Complete(second.UploadId, 3, Env.Checksum);
 
         var handler = new GetSpeakingRecordingPlaybackUrl(
@@ -186,7 +193,7 @@ internal sealed class Env
 
     public async Task<InitSpeakingRecordingResult> Init(string contentType)
     {
-        var bytes = new byte[] { 0x01, 0x02, 0x03 };
+        var bytes = new byte[] { 0x49, 0x44, 0x33 };
         return await InitHandler.HandleAsync(
             new InitSpeakingRecordingCommand(
                 SpeakingFixtures.Owner, SpeakingFixtures.Sitting, SpeakingFixtures.QuestionId,
@@ -201,9 +208,18 @@ internal sealed class Env
             new CompleteSpeakingRecordingCommand(
                 SpeakingFixtures.Owner, SpeakingFixtures.Sitting, uploadId, size, checksum), default);
 
+    /// <summary>The client's PUT: the bytes land in storage under the take's key.</summary>
+    public async Task Upload(InitSpeakingRecordingResult take)
+    {
+        var bytes = new byte[] { 0x49, 0x44, 0x33 };
+        await Blobs.PutAsync(
+            SpeakingRecordingKey.Prefix + take.RecordingId,
+            new MemoryStream(bytes, writable: false), take.ContentType, Env.Checksum, default);
+    }
+
     /// <summary>The declared checksum for a take — 64-hex SHA-256 of the test bytes.</summary>
     public static string Checksum =>
-        Convert.ToHexString(System.Security.Cryptography.SHA256.HashData([0x01, 0x02, 0x03]))
+        Convert.ToHexString(System.Security.Cryptography.SHA256.HashData([0x49, 0x44, 0x33]))
             .ToLowerInvariant();
 
     public string? SheetValue(string questionId) => Answers.Saved.GetValueOrDefault(questionId);
@@ -275,20 +291,28 @@ internal sealed class TakeIsolationMetadata : ISpeakingRecordingMetadataStore
         return Task.CompletedTask;
     }
 
-    public Task UpdateAfterUploadAsync(
-        string uploadId, long sizeBytes, string checksumSha256, CancellationToken ct) =>
-        Task.CompletedTask;
-
-    public Task MarkLinkedAsync(string uploadId, DateTimeOffset at, CancellationToken ct)
+    public Task<bool> UpdateAfterUploadAsync(
+        string uploadId, long sizeBytes, string checksumSha256, CancellationToken ct)
     {
-        Replace(uploadId, r => r with { Status = SpeakingRecordingStatus.Linked, LinkedAt = at });
-        return Task.CompletedTask;
+        Replace(uploadId, r => r with
+        {
+            Status = SpeakingRecordingStatus.Uploaded,
+            ActualSizeBytes = sizeBytes,
+            ActualChecksumSha256 = checksumSha256,
+        });
+        return Task.FromResult(true);
     }
 
-    public Task MarkAbandonedAsync(string uploadId, CancellationToken ct)
+    public Task<bool> MarkLinkedAsync(string uploadId, DateTimeOffset at, CancellationToken ct)
+    {
+        Replace(uploadId, r => r with { Status = SpeakingRecordingStatus.Linked, LinkedAt = at });
+        return Task.FromResult(true);
+    }
+
+    public Task<bool> MarkAbandonedAsync(string uploadId, CancellationToken ct)
     {
         Replace(uploadId, r => r with { Status = SpeakingRecordingStatus.Abandoned });
-        return Task.CompletedTask;
+        return Task.FromResult(true);
     }
 
     private void Replace(string uploadId, Func<SpeakingRecordingMetadata, SpeakingRecordingMetadata> change)
@@ -323,7 +347,7 @@ internal sealed class TakeIsolationMetadata : ISpeakingRecordingMetadataStore
         DateTimeOffset olderThan, int limit, CancellationToken ct) =>
         Task.FromResult<IReadOnlyList<SpeakingRecordingMetadata>>([]);
 
-    public Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanLinkedAsync(
+    public Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanSweepableAsync(
         DateTimeOffset olderThan, int limit, CancellationToken ct,
         StoredRecording? after) =>
         Task.FromResult<IReadOnlyList<SpeakingRecordingMetadata>>([]);
@@ -337,14 +361,11 @@ internal sealed class TakeIsolationBlobs : ISpeakingRecordingBlobStore
     /// The checksum each presign declared — echoed back by HEAD, the way the
     /// object metadata echoes <c>x-amz-meta-sha256</c> in the real store.
     /// </summary>
-    private readonly Dictionary<string, string> _declared = [];
+    private readonly Dictionary<string, (byte[] Bytes, string ContentType, string Checksum)> _objects = [];
 
     public Uri CreatePresignedPutUrl(
-        string objectKey, string contentType, string checksumSha256, TimeSpan ttl)
-    {
-        _declared[objectKey] = checksumSha256;
-        return new Uri($"https://uploads.example/{objectKey}");
-    }
+        string objectKey, string contentType, string checksumSha256, TimeSpan ttl) =>
+        new($"https://uploads.example/{objectKey}");
 
     public Uri CreatePresignedGetUrl(string objectKey, TimeSpan ttl) =>
         new($"https://cdn.example/{objectKey}");
@@ -352,15 +373,28 @@ internal sealed class TakeIsolationBlobs : ISpeakingRecordingBlobStore
     public Task<SpeakingRecordingObjectHead?> HeadAsync(
         string objectKey, CancellationToken ct) =>
         Task.FromResult<SpeakingRecordingObjectHead?>(
-            _declared.TryGetValue(objectKey, out var checksum)
-                ? new SpeakingRecordingObjectHead(3, "audio/webm", checksum)
+            _objects.TryGetValue(objectKey, out var stored)
+                ? new SpeakingRecordingObjectHead(stored.Bytes.Length, stored.ContentType, stored.Checksum)
                 : null);
 
-    public Task PutAsync(
+    public async Task PutAsync(
         string objectKey, Stream content, string contentType, string checksumSha256,
-        CancellationToken ct) => Task.CompletedTask;
+        CancellationToken ct)
+    {
+        using var buffer = new MemoryStream();
+        await content.CopyToAsync(buffer, ct);
+        _objects[objectKey] = (buffer.ToArray(), contentType, checksumSha256);
+    }
 
-    public Task DeleteAsync(string objectKey, CancellationToken ct) => Task.CompletedTask;
+    public Task<SpeakingRecordingObject?> OpenAsync(string objectKey, CancellationToken ct) =>
+        Task.FromResult<SpeakingRecordingObject?>(
+            _objects.TryGetValue(objectKey, out var stored)
+                ? new SpeakingRecordingObject(
+                    new MemoryStream(stored.Bytes, writable: false), stored.ContentType, stored.Bytes.Length)
+                : null);
+
+    public Task DeleteAsync(string objectKey, CancellationToken ct) =>
+        Task.FromResult(_objects.Remove(objectKey));
 }
 
 /// <summary>
@@ -408,6 +442,11 @@ internal sealed class ClosingAnswers : IAnswerSheetStore
         return Task.FromResult(new AnswerSheet(Saved, 1));
     }
 }
+
+
+
+
+
 
 
 

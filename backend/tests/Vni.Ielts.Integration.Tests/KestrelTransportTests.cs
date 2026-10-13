@@ -136,7 +136,13 @@ public sealed class KestrelTransportTests(KestrelExamAppFactory app)
 
     private static MultipartFormDataContent FormFor(string questionId, int bytes)
     {
-        var audio = new ByteArrayContent(new byte[bytes]);
+        // An ID3 head - the server sniffs the bytes, so a payload of zeros
+        // would be refused as non-audio whatever the declared type says.
+        var payload = new byte[bytes];
+        payload[0] = 0x49; // I
+        payload[1] = 0x44; // D
+        payload[2] = 0x33; // 3
+        var audio = new ByteArrayContent(payload);
         audio.Headers.ContentType = new MediaTypeHeaderValue("audio/webm");
 
         return new MultipartFormDataContent

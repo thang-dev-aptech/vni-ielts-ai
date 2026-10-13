@@ -36,7 +36,7 @@ public sealed class RecordingReconciliationTests
 
     private static async Task<string> UploadAsync(FakeRecordingStore store, string questionId) =>
         await store.SaveAsync(
-            Sitting, questionId, new MemoryStream([1, 2, 3]), "audio/ogg", default);
+            Sitting, questionId, new MemoryStream([0x49, 0x44, 0x33, 0x04]), "audio/ogg", default);
 
     [Fact]
     public async Task A_recording_the_sheet_still_names_is_left_alone()
@@ -146,3 +146,4 @@ public sealed class RecordingReconciliationTests
         Assert.Equal(1, second.Removed);
     }
 }
+

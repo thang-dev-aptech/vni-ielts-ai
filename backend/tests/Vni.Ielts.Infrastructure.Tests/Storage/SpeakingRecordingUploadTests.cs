@@ -19,9 +19,21 @@ namespace Vni.Ielts.Infrastructure.Tests.Storage;
 /// <summary>
 /// FS8.2 — init → presigned PUT → complete → HEAD → answer sheet link against MinIO.
 /// </summary>
-public sealed class SpeakingRecordingUploadTests
-{
-    private const string SpeakingBucket = "vni-speaking";
+    public sealed class SpeakingRecordingUploadTests
+    {
+        /// <summary>An MP3 head (ID3) so the server's sniff accepts the upload.</summary>
+        private static byte[] ValidAudioBytes(string tail)
+        {
+            var tailBytes = Encoding.UTF8.GetBytes(tail);
+            var bytes = new byte[3 + tailBytes.Length];
+            bytes[0] = 0x49; // I
+            bytes[1] = 0x44; // D
+            bytes[2] = 0x33; // 3
+            tailBytes.CopyTo(bytes, 3);
+            return bytes;
+        }
+
+        private const string SpeakingBucket = "vni-speaking";
     private static readonly DateTimeOffset T0 = new(2026, 8, 29, 9, 0, 0, TimeSpan.Zero);
 
     public static bool MinioAvailable => ObjectStorageProbe.MinioAvailable;
@@ -33,7 +45,7 @@ public sealed class SpeakingRecordingUploadTests
         Skip.IfNot(MinioAvailable, SkipReason);
 
         await using var env = await Env.CreateAsync();
-        var bytes = Encoding.UTF8.GetBytes("speaking-audio-fixture-bytes");
+        var bytes = ValidAudioBytes("speaking-audio-fixture-bytes");
         var checksum = Convert.ToHexStringLower(SHA256.HashData(bytes));
 
         var init = await env.Init.HandleAsync(
@@ -165,8 +177,8 @@ public sealed class SpeakingRecordingUploadTests
         Skip.IfNot(MinioAvailable, SkipReason);
 
         await using var env = await Env.CreateAsync();
-        var first = Encoding.UTF8.GetBytes("first-take");
-        var second = Encoding.UTF8.GetBytes("second-take-replaces");
+        var first = ValidAudioBytes("first-take");
+        var second = ValidAudioBytes("second-take-replaces");
         var firstChecksum = Convert.ToHexStringLower(SHA256.HashData(first));
         var secondChecksum = Convert.ToHexStringLower(SHA256.HashData(second));
 
@@ -507,3 +519,4 @@ public sealed class SpeakingRecordingUploadTests
             Task.FromResult(true);
     }
 }
+

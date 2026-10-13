@@ -91,30 +91,65 @@ internal sealed class MongoSpeakingRecordingMetadataStore(IMongoDatabase databas
                 d => d.Status, nameof(SpeakingRecordingStatus.Abandoned)),
             cancellationToken: ct);
 
-    public async Task UpdateAfterUploadAsync(
-        string uploadId, long sizeBytes, string checksumSha256, CancellationToken ct) =>
-        await _collection.UpdateOneAsync(
-            Builders<SpeakingRecordingDocument>.Filter.Eq(d => d.Id, uploadId),
+    /// <summary>
+    /// <b>Every status write is conditional, and the match count is the
+    /// answer.</b> A stale-abort pass and a second complete both read a
+    /// pending row; the read-then-write between handlers is unguarded, so the
+    /// guard lives where the write happens: an update whose filter no longer
+    /// matches is the signal that the row changed under the caller, and the
+    /// caller treats false as the 404 it factually is.
+    /// </summary>
+    public async Task<bool> UpdateAfterUploadAsync(
+        string uploadId, long sizeBytes, string checksumSha256, CancellationToken ct)
+    {
+        var result = await _collection.UpdateOneAsync(
+            Builders<SpeakingRecordingDocument>.Filter.And(
+                Builders<SpeakingRecordingDocument>.Filter.Eq(d => d.Id, uploadId),
+                Builders<SpeakingRecordingDocument>.Filter.Eq(
+                    d => d.Status, nameof(SpeakingRecordingStatus.PendingUpload))),
             Builders<SpeakingRecordingDocument>.Update
                 .Set(d => d.ActualSizeBytes, sizeBytes)
                 .Set(d => d.ActualChecksumSha256, checksumSha256)
                 .Set(d => d.Status, nameof(SpeakingRecordingStatus.Uploaded)),
             cancellationToken: ct);
 
-    public async Task MarkLinkedAsync(string uploadId, DateTimeOffset at, CancellationToken ct) =>
-        await _collection.UpdateOneAsync(
-            Builders<SpeakingRecordingDocument>.Filter.Eq(d => d.Id, uploadId),
+        return result.ModifiedCount == 1;
+    }
+
+    public async Task<bool> MarkLinkedAsync(string uploadId, DateTimeOffset at, CancellationToken ct)
+    {
+        var result = await _collection.UpdateOneAsync(
+            Builders<SpeakingRecordingDocument>.Filter.And(
+                Builders<SpeakingRecordingDocument>.Filter.Eq(d => d.Id, uploadId),
+                Builders<SpeakingRecordingDocument>.Filter.Eq(
+                    d => d.Status, nameof(SpeakingRecordingStatus.Uploaded))),
             Builders<SpeakingRecordingDocument>.Update
                 .Set(d => d.Status, nameof(SpeakingRecordingStatus.Linked))
                 .Set(d => d.LinkedAt, at.UtcDateTime),
             cancellationToken: ct);
 
-    public async Task MarkAbandonedAsync(string uploadId, CancellationToken ct) =>
-        await _collection.UpdateOneAsync(
-            Builders<SpeakingRecordingDocument>.Filter.Eq(d => d.Id, uploadId),
+        return result.ModifiedCount == 1;
+    }
+
+    public async Task<bool> MarkAbandonedAsync(string uploadId, CancellationToken ct)
+    {
+        // Abandon from Pending or Uploaded - never from Linked (that would
+        // retire a filed answer) and not from Abandoned itself.
+        var result = await _collection.UpdateOneAsync(
+            Builders<SpeakingRecordingDocument>.Filter.And(
+                Builders<SpeakingRecordingDocument>.Filter.Eq(d => d.Id, uploadId),
+                Builders<SpeakingRecordingDocument>.Filter.In(
+                    d => d.Status,
+                    [
+                        nameof(SpeakingRecordingStatus.PendingUpload),
+                        nameof(SpeakingRecordingStatus.Uploaded),
+                    ])),
             Builders<SpeakingRecordingDocument>.Update.Set(
                 d => d.Status, nameof(SpeakingRecordingStatus.Abandoned)),
             cancellationToken: ct);
+
+        return result.ModifiedCount == 1;
+    }
 
     public async Task<IReadOnlyList<SpeakingRecordingMetadata>> ListPendingOlderThanAsync(
         DateTimeOffset olderThan, int limit, CancellationToken ct)
@@ -170,16 +205,21 @@ internal sealed class MongoSpeakingRecordingMetadataStore(IMongoDatabase databas
         return docs.ConvertAll(FromDoc);
     }
 
-    public async Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanLinkedAsync(
+    public async Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanSweepableAsync(
         DateTimeOffset olderThan, int limit, CancellationToken ct,
         StoredRecording? after)
     {
-        // Linked rows only, cursor in the query — the sweep's pagination. The
-        // tiebreak on RecordingId makes the order total, so a cursor cannot
-        // skip a row two rows share a CreatedAt with.
+        // Linked and Uploaded both sweep - Uploaded is the crash window the
+        // sweep either recovers or removes. Cursor in the query, before the
+        // limit; the tiebreak on RecordingId makes the order total, so a
+        // cursor cannot skip a row two rows share a CreatedAt with.
         var filter = Builders<SpeakingRecordingDocument>.Filter.And(
-            Builders<SpeakingRecordingDocument>.Filter.Eq(
-                d => d.Status, nameof(SpeakingRecordingStatus.Linked)),
+            Builders<SpeakingRecordingDocument>.Filter.In(
+                d => d.Status,
+                [
+                    nameof(SpeakingRecordingStatus.Linked),
+                    nameof(SpeakingRecordingStatus.Uploaded),
+                ]),
             Builders<SpeakingRecordingDocument>.Filter.Lt(d => d.CreatedAt, olderThan.UtcDateTime));
 
         if (after is { } cursor)

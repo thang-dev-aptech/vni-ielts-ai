@@ -762,6 +762,13 @@ public static class ExamEndpoints
                 ErrorCodes.SessionNotInProgress,
                 $"This sitting is {e.Status}.", StatusCodes.Status409Conflict);
         }
+        catch (SpeakingRecordingNotAudioException)
+        {
+            return Problem(
+                ErrorCodes.RecordingNotAudio,
+                "The uploaded recording's bytes are not a recognised audio format.",
+                StatusCodes.Status400BadRequest);
+        }
         catch (ArgumentException e)
         {
             return Problem(ErrorCodes.ValidationFailed, e.Message, StatusCodes.Status400BadRequest);

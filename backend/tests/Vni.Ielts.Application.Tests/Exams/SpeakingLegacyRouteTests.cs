@@ -129,7 +129,7 @@ Handler = new SubmitSpeakingRecording(
 
     public async Task<string> Submit()
     {
-        var bytes = new byte[] { 0x0a, 0x0b, 0x0c, 0x0d };
+        var bytes = new byte[] { 0x49, 0x44, 0x33, 0x0d };
         using var content = new MemoryStream(bytes, writable: false);
         return await Handler.HandleAsync(
             new SubmitSpeakingRecordingCommand(
