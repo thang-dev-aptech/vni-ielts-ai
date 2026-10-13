@@ -233,7 +233,7 @@ public sealed class GracefulShutdownTests
 
     private sealed class UnusedTranscriptSource : ITranscriptSource
     {
-        public Task<string?> ForAsync(
+        public Task<IReadOnlyList<SpeechTranscript>?> ForAsync(
             ExamSessionId sessionId, IReadOnlyList<SpeakingRecording> recordings, CancellationToken ct) =>
             throw new NotSupportedException();
     }

@@ -170,11 +170,26 @@ internal sealed class FakeTranscriptSource(string? transcript) : ITranscriptSour
 {
     public List<IReadOnlyList<SpeakingRecording>> Requests { get; } = [];
 
-    public Task<string?> ForAsync(
+    /// <summary>
+    /// A per-question word timing to hand back with the text — the shape the
+    /// port now carries. Empty when no transcript was configured.
+    /// </summary>
+    public Task<IReadOnlyList<SpeechTranscript>?> ForAsync(
         ExamSessionId sessionId, IReadOnlyList<SpeakingRecording> recordings, CancellationToken ct)
     {
         Requests.Add(recordings);
-        return Task.FromResult(transcript);
+
+        if (transcript is null) return Task.FromResult<IReadOnlyList<SpeechTranscript>?>(null);
+
+        return Task.FromResult<IReadOnlyList<SpeechTranscript>?>(recordings
+            .Select(r => new SpeechTranscript(
+                r.QuestionId,
+                transcript,
+                [
+                    new TranscriptWord("hello", 0.0, 0.4, 0.97),
+                    new TranscriptWord("world", 0.5, 0.9, 0.95),
+                ]))
+            .ToList());
     }
 }
 
