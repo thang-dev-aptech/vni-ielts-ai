@@ -1,5 +1,6 @@
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
+using Vni.Ielts.Domain.Sessions;
 
 namespace Vni.Ielts.Application.Exams;
 
@@ -37,6 +38,8 @@ namespace Vni.Ielts.Application.Exams;
 public sealed class RecordingReconciliation(
     IRecordingStore recordings,
     IAnswerSheetStore answers,
+    ISpeakingRecordingMetadataStore? metadata,
+    ISpeakingRecordingBlobStore? blobs,
     AbortStaleSpeakingUploads? abortStale,
     IClock clock)
 {
@@ -44,7 +47,16 @@ public sealed class RecordingReconciliation(
         IRecordingStore recordings,
         IAnswerSheetStore answers,
         IClock clock)
-        : this(recordings, answers, null, clock)
+        : this(recordings, answers, null, null, null, clock)
+    {
+    }
+
+    public RecordingReconciliation(
+        IRecordingStore recordings,
+        IAnswerSheetStore answers,
+        AbortStaleSpeakingUploads? abortStale,
+        IClock clock)
+        : this(recordings, answers, null, null, abortStale, clock)
     {
     }
 
@@ -57,8 +69,17 @@ public sealed class RecordingReconciliation(
     /// of every recording the product has ever stored, holding a connection for
     /// as long as that takes.
     /// </param>
+    /// <param name="after">
+    /// <b>The cursor that keeps the sweep moving.</b> The store hands back the
+    /// oldest batch each pass; rows the sheet still references are examined
+    /// and left — correctly — but left at the front of that queue. Without a
+    /// cursor, one full batch of referenced rows makes every later pass
+    /// re-read exactly those and never reach the orphans behind them: the
+    /// sweep spins forever, and its report always says it examined the same
+    /// five things. The caller carries the last examined row across passes.
+    /// </param>
     public async Task<ReconciliationReport> SweepAsync(
-        TimeSpan minimumAge, int limit, CancellationToken ct)
+        TimeSpan minimumAge, int limit, CancellationToken ct, StoredRecording? after = null)
     {
         // Pending inits whose PUT window elapsed — before the orphan sweep so
         // a abandoned row is not later mistaken for a Linked orphan.
@@ -67,7 +88,28 @@ public sealed class RecordingReconciliation(
             stale = await abortStale.HandleAsync(limit, ct);
 
         var cutoff = clock.UtcNow - minimumAge;
-        var candidates = await recordings.ListOlderThanAsync(cutoff, limit, ct);
+
+        /*
+         * <b>Enumerate from the metadata when it exists.</b> The presigned flow
+         * never touches the recording store — its bytes go straight to object
+         * storage — so a candidate list built from the recording store would
+         * never see those takes at all. The metadata rows are the complete
+         * census; the recording-store listing remains the fallback for a
+         * deployment without the metadata store.
+         */
+        IReadOnlyList<StoredRecording> candidates;
+        if (metadata is not null)
+        {
+            var rows = await metadata.ListOlderThanSweepableAsync(cutoff, limit, ct, after);
+            candidates = rows
+                .Select(r => new StoredRecording(
+                    r.RecordingId, r.SessionId, r.QuestionId, r.CreatedAt))
+                .ToArray();
+        }
+        else
+        {
+            candidates = await recordings.ListOlderThanAsync(cutoff, limit, ct, after);
+        }
 
         var examined = 0;
         var orphaned = 0;
@@ -80,6 +122,11 @@ public sealed class RecordingReconciliation(
          * would otherwise read the same document three times each.
          */
         var sheets = new Dictionary<string, IReadOnlyDictionary<string, string?>>();
+        SpeakingRecordingMetadata? RowFor(StoredRecording recording) =>
+            metadata is null
+                ? null
+                : metadata.ListBySessionAsync(recording.SessionId, ct).GetAwaiter().GetResult()
+                    .FirstOrDefault(r => r.RecordingId == recording.RecordingId);
 
         foreach (var recording in candidates)
         {
@@ -91,10 +138,17 @@ public sealed class RecordingReconciliation(
                 sheets[recording.SessionId.Value] = sheet;
             }
 
-            // Still somebody's answer. Nothing to do.
+            // Still somebody's answer. Nothing to do — but an <c>Uploaded</c>
+            // row the sheet names is the crash window recovered: complete
+            // verified the bytes and wrote the sheet, then died before
+            // linking. Finishing that link is the sweep's cheapest act.
             if (sheet.TryGetValue(recording.QuestionId, out var filed)
                 && filed == recording.RecordingId)
             {
+                var row = RowFor(recording);
+                if (row is { Status: SpeakingRecordingStatus.Uploaded })
+                    await metadata!.MarkLinkedAsync(row.UploadId, clock.UtcNow, ct);
+
                 continue;
             }
 
@@ -102,7 +156,28 @@ public sealed class RecordingReconciliation(
 
             try
             {
+                // <b>The bytes leave from wherever they live.</b> The presigned
+                // flow stores blobs the recording store has never heard of —
+                // deleting only through the recording store would leave the
+                // object in the bucket while reporting success.
+                var row = RowFor(recording);
+                var blobKey = row?.ObjectKey
+                    ?? $"{Vni.Ielts.Application.Exams.SpeakingRecordingKey.Prefix}{recording.RecordingId}";
+                if (blobs is { IsConfigured: true })
+                {
+                    try { await blobs.DeleteAsync(blobKey, ct); }
+                    catch (Exception) { /* the recording-store delete is the report's source of truth */ }
+                }
+
                 await recordings.DeleteAsync(recording.RecordingId, ct);
+
+                // An orphaned row with live bytes was in <c>Uploaded</c> — the
+                // crash window whose sheet write never landed. Retire it, or
+                // the row sits there forever: sweepable, unfixable, holding a
+                // row that says bytes exist when they no longer do.
+                if (row is { Status: SpeakingRecordingStatus.Uploaded })
+                    await metadata!.MarkAbandonedAsync(row.UploadId, ct);
+
                 removed++;
             }
             catch (Exception)
@@ -119,7 +194,8 @@ public sealed class RecordingReconciliation(
 
         return new ReconciliationReport(
             examined, orphaned, removed, failed,
-            stale?.Abandoned ?? 0, stale?.ObjectsRemoved ?? 0);
+            stale?.Abandoned ?? 0, stale?.ObjectsRemoved ?? 0,
+            candidates.Count > 0 ? candidates.Last() : after);
     }
 }
 
@@ -142,4 +218,5 @@ public sealed record ReconciliationReport(
     int Removed,
     int Failed,
     int StaleUploadsAbandoned = 0,
-    int StaleObjectsRemoved = 0);
+    int StaleObjectsRemoved = 0,
+    StoredRecording? NextCursor = null);

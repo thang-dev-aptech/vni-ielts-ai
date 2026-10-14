@@ -88,23 +88,41 @@ public sealed class ReconciliationWorker(
                 using var scope = scopes.CreateScope();
                 var sweep = scope.ServiceProvider.GetRequiredService<RecordingReconciliation>();
 
-                var report = await sweep.SweepAsync(MinimumAge, BatchSize, stopping);
+                // <b>Drain with the cursor, not one batch per interval.</b> The
+                // oldest batch may be rows the sheets still reference — judged
+                // and left, correctly. Without carrying the cursor forward the
+                // next pass re-read exactly that batch and never reaches the
+                // orphans behind it: the sweep spins forever on a queue whose
+                // front never moves. Looping here until a pass comes back
+                // short is what makes "removed nothing today" mean "there was
+                // nothing to remove" rather than "we looked at the same five
+                // rows again".
+                ReconciliationReport report;
+                StoredRecording? cursor = null;
+                do
+                {
+                    report = await sweep.SweepAsync(MinimumAge, BatchSize, stopping, cursor);
+                    cursor = report.NextCursor;
+
+                    if (report.Orphaned > 0 || report.Failed > 0)
+                    {
+                        logger.LogWarning(
+                            "Reconciliation examined {Examined} recordings, found {Orphaned} that "
+                            + "nothing references, removed {Removed}, and could not remove {Failed}. "
+                            + "A steady trickle is the ordinary consequence of refused uploads; a "
+                            + "spike means something is writing audio that never reaches a sheet.",
+                            report.Examined, report.Orphaned, report.Removed, report.Failed);
+                    }
+                }
+                while (report.Examined == BatchSize && cursor is not null && !stopping.IsCancellationRequested);
 
                 /*
                  * <b>Silent when there is nothing to say.</b> An empty sweep is
                  * the expected outcome and logging it hourly is how a log stops
                  * being read — the same lesson as the marking worker's absent
-                 * heartbeat.
+                 * heartbeat. The per-pass log above already carries anything
+                 * worth saying.
                  */
-                if (report.Orphaned > 0 || report.Failed > 0)
-                {
-                    logger.LogWarning(
-                        "Reconciliation examined {Examined} recordings, found {Orphaned} that "
-                        + "nothing references, removed {Removed}, and could not remove {Failed}. "
-                        + "A steady trickle is the ordinary consequence of refused uploads; a "
-                        + "spike means something is writing audio that never reaches a sheet.",
-                        report.Examined, report.Orphaned, report.Removed, report.Failed);
-                }
             }
             catch (OperationCanceledException) when (stopping.IsCancellationRequested)
             {

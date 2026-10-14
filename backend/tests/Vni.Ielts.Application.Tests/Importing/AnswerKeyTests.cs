@@ -270,7 +270,14 @@ public sealed class AnswerKeyTests
 
         Assert.True(result.IsSuccess, Summarise(result));
         Assert.Contains(result.Findings, f => f.Code == AnswerKeyInjection.OptionAddedCode);
-        Assert.Contains("{\"key\":\"H\",\"text\":\"H\"}", result.PackageJson.Replace(" ", "").Replace("\n", ""), StringComparison.Ordinal);
+        // Strip \r as well: System.Text.Json indents with Environment.NewLine, so
+        // the serialized paper carries \r\n on Windows and \n on Unix. Removing
+        // only \n leaves a stray \r between properties here, and the assertion
+        // passes on one OS while failing on the other.
+        Assert.Contains(
+            "{\"key\":\"H\",\"text\":\"H\"}",
+            result.PackageJson.Replace(" ", "").Replace("\r", "").Replace("\n", ""),
+            StringComparison.Ordinal);
     }
 
     /// <summary>VOL 9 T2 Q27–30: a summary with an A–D word bank left as prose; key "D wood".</summary>

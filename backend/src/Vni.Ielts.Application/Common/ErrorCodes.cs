@@ -112,6 +112,9 @@ public static class ErrorCodes
     /// <summary>Object storage HEAD did not confirm the upload.</summary>
     public const string RecordingVerificationFailed = "RECORDING_VERIFICATION_FAILED";
 
+    /// <summary>The uploaded bytes carry no audio magic signature.</summary>
+    public const string RecordingNotAudio = "RECORDING_NOT_AUDIO";
+
     /// <summary>Presigned upload is not configured for this deployment.</summary>
     public const string RecordingUploadUnavailable = "RECORDING_UPLOAD_UNAVAILABLE";
 

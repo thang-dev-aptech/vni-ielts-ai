@@ -1194,6 +1194,7 @@ public sealed class SubmitSpeakingRecording(
     IExamSessionRepository sessions,
     IAnswerSheetStore answers,
     IRecordingStore recordings,
+    ISpeakingRecordingMetadataStore metadata,
     IClock clock)
 {
     public async Task<string> HandleAsync(
@@ -1220,10 +1221,37 @@ public sealed class SubmitSpeakingRecording(
                 "That question is not part of this exam's Speaking section.",
                 nameof(command));
 
-        var recordingId = await recordings.SaveAsync(
-            command.SessionId, command.QuestionId, command.Content, command.ContentType, ct);
+        // <b>Sniff the head, like every other upload.</b> The declared type is
+        // a label; the bytes decide what this is. A non-audio payload is
+        // refused before a byte is stored - the same rule the CMS media
+        // library and the presigned path apply.
+        var probe = new byte[Vni.Ielts.Application.Media.MediaSniffer.ProbeLength];
+        var probed = await command.Content.ReadAtLeastAsync(
+            probe, probe.Length, throwOnEndOfStream: false, ct);
+        var sniffed = Vni.Ielts.Application.Media.MediaSniffer.Sniff(probe.AsSpan(0, probed));
+        if (sniffed is null || sniffed.Kind != Vni.Ielts.Application.Media.MediaKind.Audio)
+            throw new SpeakingRecordingNotAudioException();
 
-        /*
+        var content = command.Content;
+        if (command.Content.CanSeek)
+        {
+            command.Content.Position = 0;
+        }
+        else
+        {
+            // A non-seekable stream has consumed its head; spool the whole file
+            // behind the probe so the store still receives everything.
+            var rest = new MemoryStream();
+            await rest.WriteAsync(probe.AsMemory(0, probed), ct);
+            await command.Content.CopyToAsync(rest, ct);
+            rest.Position = 0;
+            content = rest;
+        }
+
+        var recordingId = await recordings.SaveAsync(
+            command.SessionId, command.QuestionId, content, command.ContentType, ct);
+
+                /*
          * ── Finalisation, and what happens when it is refused ──────────────
          *
          * <b>An upload is two writes, and the checks above were made before the
@@ -1267,6 +1295,33 @@ public sealed class SubmitSpeakingRecording(
 
             throw;
         }
+
+        /*
+         * <b>The legacy route files a row, like the presigned one.</b> Without
+         * it the recording was invisible: playback had nothing to resolve a
+         * presigned URL against, the purge had nothing to find (so learner
+         * voice survived an account deletion the audit trail believed had
+         * removed it), and the sweep could only reach the object through the
+         * answer sheet. The row is written after the sheet accepts — a
+         * refused upload files nothing, because its bytes are already gone.
+         */
+        await metadata.InsertAsync(
+            new SpeakingRecordingMetadata(
+                UploadId: Guid.NewGuid().ToString("N"),
+                RecordingId: recordingId,
+                ObjectKey: SpeakingRecordingKey.Prefix + recordingId,
+                OwnerId: command.UserId,
+                SessionId: command.SessionId,
+                QuestionId: command.QuestionId,
+                ContentType: command.ContentType,
+                ExpectedSizeBytes: null,
+                ExpectedChecksumSha256: null,
+                ActualSizeBytes: null,
+                ActualChecksumSha256: null,
+                Status: SpeakingRecordingStatus.Linked,
+                CreatedAt: now,
+                RetentionExpiresAt: null,
+                LinkedAt: now), ct);
 
         return recordingId;
     }
@@ -2027,3 +2082,5 @@ internal static class SessionProjection
         return (BandScore.Weighted([(task1.Band, weights.Task1), (task2.Band, weights.Task2)]), null);
     }
 }
+
+

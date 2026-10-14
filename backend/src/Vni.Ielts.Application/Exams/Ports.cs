@@ -638,8 +638,14 @@ public interface IRecordingStore
     /// the learner's only copy of a spoken answer while they were still
     /// uploading it. → `I2.4`
     /// </summary>
+    /// <summary>
+    /// The oldest batch at or after <paramref name="after"/> — the sweep's
+    /// cursor. Null reads from the very oldest. <b>Ordering must be stable
+    /// across passes</b> (uploaded time, then id), or a cursor can skip a row
+    /// the ordering shuffled behind it.
+    /// </summary>
     Task<IReadOnlyList<StoredRecording>> ListOlderThanAsync(
-        DateTimeOffset olderThan, int limit, CancellationToken ct);
+        DateTimeOffset olderThan, int limit, CancellationToken ct, StoredRecording? after = null);
 }
 
 /// <summary>One recording as storage holds it, for the reconciliation sweep.</summary>

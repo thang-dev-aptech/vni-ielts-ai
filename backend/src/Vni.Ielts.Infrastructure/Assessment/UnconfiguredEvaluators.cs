@@ -49,8 +49,8 @@ public sealed class UnconfiguredEvaluator(ExamModule module) : ISectionEvaluator
 /// </summary>
 public sealed class NoTranscriptSource : ITranscriptSource
 {
-    public Task<string?> ForAsync(
+    public Task<IReadOnlyList<SpeechTranscript>?> ForAsync(
         ExamSessionId sessionId, IReadOnlyList<SpeakingRecording> recordings,
         CancellationToken ct) =>
-        Task.FromResult<string?>(null);
+        Task.FromResult<IReadOnlyList<SpeechTranscript>?>(null);
 }

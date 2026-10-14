@@ -21,6 +21,9 @@ internal sealed class UnconfiguredSpeakingRecordingBlobStore : ISpeakingRecordin
         CancellationToken ct) =>
         throw new SpeakingRecordingUploadUnavailableException();
 
+    public Task<SpeakingRecordingObject?> OpenAsync(string objectKey, CancellationToken ct) =>
+        throw new SpeakingRecordingUploadUnavailableException();
+
     public Task DeleteAsync(string objectKey, CancellationToken ct) =>
         throw new SpeakingRecordingUploadUnavailableException();
 }

@@ -29,7 +29,7 @@ public sealed class SpeakingRecordingRemainderTests
         var clock = new MovableClock(T0);
 
         var objectKey = SpeakingRecordingKey.For(Sitting, "s-part-1");
-        await blobs.PutAsync(objectKey, new MemoryStream([1, 2, 3]), "audio/webm", "aa", default);
+        await blobs.PutAsync(objectKey, new MemoryStream([0x49, 0x44, 0x33, 0x04]), "audio/webm", "aa", default);
         await metadata.InsertAsync(Row(
             "upload-stale", objectKey, SpeakingRecordingStatus.PendingUpload, T0.AddMinutes(-20)), default);
 
@@ -52,7 +52,7 @@ public sealed class SpeakingRecordingRemainderTests
         var clock = new MovableClock(T0);
         var objectKey = SpeakingRecordingKey.For(Sitting, "s-part-1");
 
-        await blobs.PutAsync(objectKey, new MemoryStream([9]), "audio/webm", "bb", default);
+        await blobs.PutAsync(objectKey, new MemoryStream([0x49, 0x44, 0x33, 0x09]), "audio/webm", "bb", default);
         await metadata.InsertAsync(Row(
             "upload-old", objectKey, SpeakingRecordingStatus.PendingUpload, T0.AddMinutes(-30)), default);
         await metadata.InsertAsync(Row(
@@ -94,7 +94,12 @@ public sealed class SpeakingRecordingRemainderTests
 
         Assert.Equal("presigned", second.UploadMode);
         Assert.Equal(SpeakingRecordingStatus.Abandoned, metadata.Find(first.UploadId)!.Status);
-        Assert.Equal(first.ObjectKey, metadata.Find(second.UploadId)!.ObjectKey);
+        // Each take files under its own key now — the shared derived key was
+        // the overwrite bug (a re-take could replace an already-filed
+        // answer's audio). The abandoned take's bytes are the orphan
+        // sweeper's job, which deletes by its own key when nothing linked
+        // claims it.
+        Assert.NotEqual(first.ObjectKey, metadata.Find(second.UploadId)!.ObjectKey);
     }
 
     [Fact]
@@ -131,8 +136,8 @@ public sealed class SpeakingRecordingRemainderTests
         var objectKey = SpeakingRecordingKey.For(Sitting, "s-part-1");
         var recordingId = SpeakingRecordingKey.RecordingIdFor(Sitting, "s-part-1");
 
-        await blobs.PutAsync(objectKey, new MemoryStream([1]), "audio/webm", "cc", default);
-        await recordings.SaveAsync(Sitting, "s-part-1", new MemoryStream([1]), "audio/webm", default);
+        await blobs.PutAsync(objectKey, new MemoryStream([0x49, 0x44, 0x33, 0x01]), "audio/webm", "cc", default);
+        await recordings.SaveAsync(Sitting, "s-part-1", new MemoryStream([0x49, 0x44, 0x33, 0x01]), "audio/webm", default);
         // Align fake id with derived key for purge assertions.
         recordings.Saved[0] = recordings.Saved[0] with { Id = recordingId };
         await metadata.InsertAsync(Row(
@@ -374,14 +379,14 @@ public sealed class SpeakingRecordingRemainderTests
             return Task.CompletedTask;
         }
 
-        public Task UpdateAfterUploadAsync(
+        public Task<bool> UpdateAfterUploadAsync(
             string uploadId, long sizeBytes, string checksumSha256, CancellationToken ct) =>
-            Task.CompletedTask;
+            Task.FromResult(true);
 
-        public Task MarkLinkedAsync(string uploadId, DateTimeOffset at, CancellationToken ct) =>
-            Task.CompletedTask;
+        public Task<bool> MarkLinkedAsync(string uploadId, DateTimeOffset at, CancellationToken ct) =>
+            Task.FromResult(true);
 
-        public Task MarkAbandonedAsync(string uploadId, CancellationToken ct)
+        public Task<bool> MarkAbandonedAsync(string uploadId, CancellationToken ct)
         {
             for (var i = 0; i < Rows.Count; i++)
             {
@@ -389,7 +394,7 @@ public sealed class SpeakingRecordingRemainderTests
                     Rows[i] = Rows[i] with { Status = SpeakingRecordingStatus.Abandoned };
             }
 
-            return Task.CompletedTask;
+            return Task.FromResult(true);
         }
 
         public Task<IReadOnlyList<SpeakingRecordingMetadata>> ListPendingOlderThanAsync(
@@ -420,6 +425,11 @@ public sealed class SpeakingRecordingRemainderTests
             DateTimeOffset olderThan, int limit, CancellationToken ct) =>
             Task.FromResult<IReadOnlyList<SpeakingRecordingMetadata>>(
                 [.. Rows.Where(r => r.CreatedAt < olderThan).Take(limit)]);
+
+        public Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanSweepableAsync(
+            DateTimeOffset olderThan, int limit, CancellationToken ct,
+            StoredRecording? after) =>
+            Task.FromResult<IReadOnlyList<SpeakingRecordingMetadata>>([]);
     }
 
     private sealed class FakeSpeakingBlobStore : ISpeakingRecordingBlobStore
@@ -450,6 +460,9 @@ public sealed class SpeakingRecordingRemainderTests
             return Task.CompletedTask;
         }
 
+        public Task<SpeakingRecordingObject?> OpenAsync(string objectKey, CancellationToken ct) =>
+            Task.FromResult<SpeakingRecordingObject?>(null);
+
         public Task DeleteAsync(string objectKey, CancellationToken ct)
         {
             Keys.Remove(objectKey);
@@ -472,3 +485,12 @@ public sealed class SpeakingRecordingRemainderTests
             Task.FromResult<(IReadOnlyList<AuditEntry>, long)>((Entries, Entries.Count));
     }
 }
+
+
+
+
+
+
+
+
+

@@ -123,7 +123,7 @@ internal sealed class GridFsRecordingStore(IMongoDatabase database, IClock clock
     }
 
     public async Task<IReadOnlyList<StoredRecording>> ListOlderThanAsync(
-        DateTimeOffset olderThan, int limit, CancellationToken ct)
+        DateTimeOffset olderThan, int limit, CancellationToken ct, StoredRecording? after = null)
     {
         /*
          * <b>Filtered on the metadata this store writes, not on GridFS's own
@@ -131,12 +131,29 @@ internal sealed class GridFsRecordingStore(IMongoDatabase database, IClock clock
          * moment anything re-uploads a file — and the question this sweep asks
          * is "how long has this <i>answer</i> been here", which is what the
          * metadata records.
+         *
+         * <b>The cursor is applied in the query, before the limit</b> — the
+         * same rule the Mongo metadata store keeps. Filtering after taking a
+         * limit is the bug that made the sweep re-read the same oldest batch
+         * forever.
          */
-        var older = Builders<GridFSFileInfo>.Filter.Lt(
+        var filter = Builders<GridFSFileInfo>.Filter.Lt(
             "metadata.uploadedAt", olderThan.UtcDateTime);
 
+        if (after is { } cursor)
+        {
+            filter = Builders<GridFSFileInfo>.Filter.And(
+                filter,
+                Builders<GridFSFileInfo>.Filter.Or(
+                    Builders<GridFSFileInfo>.Filter.Gt("metadata.uploadedAt", cursor.UploadedAt.UtcDateTime),
+                    Builders<GridFSFileInfo>.Filter.And(
+                        Builders<GridFSFileInfo>.Filter.Eq(
+                            "metadata.uploadedAt", cursor.UploadedAt.UtcDateTime),
+                        Builders<GridFSFileInfo>.Filter.Gt(f => f.Filename, cursor.RecordingId))));
+        }
+
         var files = await _bucket
-            .Find(older, new GridFSFindOptions { Limit = limit }, ct)
+            .Find(filter, new GridFSFindOptions { Limit = limit, Sort = Builders<GridFSFileInfo>.Sort.Ascending(f => f.Filename) }, ct)
             .ToListAsync(ct);
 
         var found = new List<StoredRecording>();

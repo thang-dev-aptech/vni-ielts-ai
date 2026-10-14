@@ -236,7 +236,7 @@ public sealed class ExamLifecycleTests
             Start = new StartExamSession(Catalogue, Sessions, Clock);
             Get = new GetExamSession(Catalogue, Sessions, Answers, Results, Marker, Clock);
             Save = new SaveAnswers(Catalogue, Sessions, Answers, Clock);
-            Record = new SubmitSpeakingRecording(Catalogue, Sessions, Answers, Recordings, Clock);
+            Record = new SubmitSpeakingRecording(Catalogue, Sessions, Answers, Recordings, new TakeIsolationMetadata(), Clock);
             Advance = new AdvanceSection(
                 Catalogue, Sessions, Answers, Results, Marker, Outbox, Rubrics, Clock);
             Submit = new SubmitExamSession(
@@ -285,7 +285,7 @@ public sealed class ExamLifecycleTests
             Record.HandleAsync(
                 new SubmitSpeakingRecordingCommand(
                     Learner, new ExamSessionId(sessionId), questionId,
-                    new MemoryStream(Encoding.UTF8.GetBytes("fake-opus-bytes")), "audio/ogg"),
+                    new MemoryStream([0x49, 0x44, 0x33, 0x04]), "audio/ogg"),
                 default);
 
         public Task<SessionView> AdvanceAsync(string sessionId) =>
@@ -683,7 +683,7 @@ public sealed class ExamLifecycleTests
 
         var intruder = new SubmitSpeakingRecordingCommand(
             UserId.New(), new ExamSessionId(session.SessionId), "s-part-1",
-            new MemoryStream([1, 2, 3]), "audio/ogg");
+            new MemoryStream([0x49, 0x44, 0x33, 0x04]), "audio/ogg");
 
         await Assert.ThrowsAsync<SessionNotFoundException>(
             () => h.Record.HandleAsync(intruder, default));
@@ -1105,3 +1105,4 @@ public sealed class ExamLifecycleTests
     }
 
 }
+

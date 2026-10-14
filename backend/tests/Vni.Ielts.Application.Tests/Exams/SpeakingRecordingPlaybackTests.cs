@@ -112,11 +112,40 @@ public sealed class SpeakingRecordingPlaybackTests
 
             return new Env
             {
-                Handler = new GetSpeakingRecordingPlaybackUrl(catalogue, sessions, blobs, metadata, clock),
+                Handler = new GetSpeakingRecordingPlaybackUrl(
+                    catalogue, sessions, blobs, metadata, new SheetStore(), clock),
                 Blobs = blobs,
                 ObjectKey = objectKey,
             };
         }
+    }
+
+    /// <summary>An empty sheet — no take filed through it in these tests.</summary>
+    private sealed class SheetStore : IAnswerSheetStore
+    {
+        public Task<IReadOnlyDictionary<string, string?>> LoadAsync(
+            ExamSessionId sessionId, ExamModule module, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyDictionary<string, string?>>(
+                new Dictionary<string, string?>());
+
+        public Task<AnswerSheet> ReadAsync(
+            ExamSessionId sessionId, ExamModule module, CancellationToken ct) =>
+            Task.FromResult(AnswerSheet.Empty);
+
+        public Task SetAnswerAsync(
+            ExamSessionId sessionId, ExamModule module, string questionId, string? value,
+            DateTimeOffset at, CancellationToken ct) => Task.CompletedTask;
+
+        public Task<PatchedSheet> PatchAsync(
+            ExamSessionId sessionId, ExamModule module,
+            IReadOnlyDictionary<string, string?> changes,
+            DateTimeOffset at, CancellationToken ct,
+            IReadOnlyDictionary<string, long>? sequences = null) =>
+            Task.FromResult(new PatchedSheet(AnswerSheet.Empty, 0));
+
+        public Task<AnswerSheet> CloseAsync(
+            ExamSessionId sessionId, ExamModule module, DateTimeOffset at, CancellationToken ct) =>
+            Task.FromResult(AnswerSheet.Empty);
     }
 
     private static ExamVersion SpeakingVersion()
@@ -158,6 +187,9 @@ public sealed class SpeakingRecordingPlaybackTests
             CancellationToken ct) =>
             throw new NotSupportedException("Playback never puts.");
 
+        public Task<SpeakingRecordingObject?> OpenAsync(string objectKey, CancellationToken ct) =>
+            throw new NotSupportedException("Playback never opens.");
+
         public Task DeleteAsync(string objectKey, CancellationToken ct) =>
             throw new NotSupportedException("Playback never deletes.");
     }
@@ -178,14 +210,14 @@ public sealed class SpeakingRecordingPlaybackTests
         public Task MarkAbandonedForQuestionAsync(
             ExamSessionId sessionId, string questionId, CancellationToken ct) => Task.CompletedTask;
 
-        public Task UpdateAfterUploadAsync(
+        public Task<bool> UpdateAfterUploadAsync(
             string uploadId, long sizeBytes, string checksumSha256, CancellationToken ct) =>
-            Task.CompletedTask;
+            Task.FromResult(true);
 
-        public Task MarkLinkedAsync(string uploadId, DateTimeOffset at, CancellationToken ct) =>
-            Task.CompletedTask;
+        public Task<bool> MarkLinkedAsync(string uploadId, DateTimeOffset at, CancellationToken ct) =>
+            Task.FromResult(true);
 
-        public Task MarkAbandonedAsync(string uploadId, CancellationToken ct) => Task.CompletedTask;
+        public Task<bool> MarkAbandonedAsync(string uploadId, CancellationToken ct) => Task.FromResult(true);
 
         public Task<IReadOnlyList<SpeakingRecordingMetadata>> ListPendingOlderThanAsync(
             DateTimeOffset olderThan, int limit, CancellationToken ct) =>
@@ -204,11 +236,24 @@ public sealed class SpeakingRecordingPlaybackTests
         public Task DeleteAsync(string uploadId, CancellationToken ct)
         {
             Rows.RemoveAll(r => r.UploadId == uploadId);
-            return Task.CompletedTask;
+            return Task.FromResult(true);
         }
 
         public Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanAsync(
             DateTimeOffset olderThan, int limit, CancellationToken ct) =>
             Task.FromResult<IReadOnlyList<SpeakingRecordingMetadata>>([]);
+
+        public Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanSweepableAsync(
+            DateTimeOffset olderThan, int limit, CancellationToken ct,
+            StoredRecording? after) =>
+            Task.FromResult<IReadOnlyList<SpeakingRecordingMetadata>>([]);
     }
 }
+
+
+
+
+
+
+
+

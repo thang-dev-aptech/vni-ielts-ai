@@ -69,6 +69,31 @@ internal sealed class S3SpeakingRecordingBlobStore(IAmazonS3 client, ObjectStora
         return new Uri(url);
     }
 
+    public async Task<SpeakingRecordingObject?> OpenAsync(string objectKey, CancellationToken ct)
+    {
+        EnsureKey(objectKey);
+
+        try
+        {
+            var response = await client.GetObjectAsync(
+                new GetObjectRequest
+                {
+                    BucketName = options.SpeakingRecordingsBucket,
+                    Key = ObjectStorageOptions.Under(options.SpeakingRecordingsPrefix, objectKey),
+                }, ct);
+
+            var contentType = string.IsNullOrWhiteSpace(response.Headers.ContentType)
+                ? "application/octet-stream"
+                : response.Headers.ContentType;
+
+            return new SpeakingRecordingObject(response.ResponseStream, contentType, response.ContentLength);
+        }
+        catch (AmazonS3Exception e) when (e.ErrorCode == "NoSuchKey")
+        {
+            return null;
+        }
+    }
+
     public async Task<SpeakingRecordingObjectHead?> HeadAsync(string objectKey, CancellationToken ct)
     {
         EnsureKey(objectKey);
@@ -183,12 +208,19 @@ internal sealed class S3SpeakingRecordingStore(
     }
 
     public async Task<IReadOnlyList<StoredRecording>> ListOlderThanAsync(
-        DateTimeOffset olderThan, int limit, CancellationToken ct)
+        DateTimeOffset olderThan, int limit, CancellationToken ct, StoredRecording? after = null)
     {
-        var rows = await metadata.ListOlderThanAsync(olderThan, limit, ct);
+        /*
+         * The cursor filter is applied <i>in the store</i>, not after the
+         * limit: the point of the cursor is that the next batch starts past
+         * the rows the last pass already judged, and filtering after taking
+         * a limit is exactly the bug that made the sweep spin. Linked and
+         * Uploaded both sweep — Uploaded is the crash window the sweep either
+         * recovers or removes.
+         */
+        var rows = await metadata.ListOlderThanSweepableAsync(olderThan, limit, ct, after);
 
         return rows
-            .Where(r => r.Status == SpeakingRecordingStatus.Linked)
             .Select(r => new StoredRecording(
                 r.RecordingId, r.SessionId, r.QuestionId, r.CreatedAt))
             .ToArray();

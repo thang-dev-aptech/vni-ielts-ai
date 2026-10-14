@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using Vni.Ielts.Application.Identity;
+using Vni.Ielts.Application.Media;
 using Vni.Ielts.Domain.Audit;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
@@ -79,6 +80,10 @@ public sealed class SpeakingRecordingChecksumMismatchException()
 public sealed class SpeakingRecordingVerificationFailedException()
     : Exception("The uploaded recording could not be verified in object storage.");
 
+/// <summary>The uploaded bytes carry no audio signature — refused before a byte is stored.</summary>
+public sealed class SpeakingRecordingNotAudioException()
+    : Exception("The uploaded recording's bytes are not a recognised audio format.");
+
 /// <summary>
 /// Shared gate for every Speaking recording write — direct upload and presigned.
 /// </summary>
@@ -107,15 +112,24 @@ internal static class SpeakingRecordingGate
 }
 
 /// <summary>
-/// Derives the stable object key for one question's recording.
+/// Derives the storage locations for a Speaking recording.
 ///
-/// Hashed from session and question so retries and re-records replace rather
-/// than accumulate orphaned learner voice data.
+/// <b>Two shapes, and both are load-bearing.</b> The single-segment key
+/// (<c>recordings/&lt;hash&gt;</c>) is the pre-2026-09-21 layout: derived from
+/// session + question, so a re-record <i>replaced</i> the previous bytes
+/// rather than accumulating orphaned learner voice. That same collision was
+/// the take-isolation bug — a retake could overwrite an answer already filed,
+/// and the refused-take cleanup deleted the id the frozen answer held — so
+/// every presigned take now files under its own key
+/// (<c>recordings/&lt;hash&gt;/&lt;uploadId&gt;</c>) and the answer sheet is
+/// pointed at that id on complete. The legacy shape stays valid so anything
+/// already stored keeps deleting and playing back.
 /// </summary>
 public static class SpeakingRecordingKey
 {
     public const string Prefix = "recordings/";
 
+    /// <summary>The per-question group component — the legacy whole key.</summary>
     public static string For(ExamSessionId sessionId, string questionId)
     {
         var material = System.Text.Encoding.UTF8.GetBytes($"{sessionId.Value}\u0000{questionId}");
@@ -124,7 +138,16 @@ public static class SpeakingRecordingKey
     }
 
     /// <summary>
-    /// The id stored on the answer sheet — the hash without the prefix.
+    /// One take's own key: the question's group hash, then the upload id.
+    /// Nothing else writes here, so a refused or stale take's bytes can be
+    /// removed without ever touching a sibling's.
+    /// </summary>
+    public static string ForObject(ExamSessionId sessionId, string questionId, string uploadId) =>
+        $"{Prefix}{For(sessionId, questionId)[Prefix.Length..]}/{uploadId}";
+
+    /// <summary>
+    /// The id stored on the answer sheet — the object key without the prefix,
+    /// so the sheet's value reconstructs the storage location for both shapes.
     /// </summary>
     public static string RecordingIdFor(ExamSessionId sessionId, string questionId) =>
         For(sessionId, questionId)[Prefix.Length..];
@@ -133,8 +156,15 @@ public static class SpeakingRecordingKey
     {
         if (!key.StartsWith(Prefix, StringComparison.Ordinal)) return false;
         var tail = key[Prefix.Length..];
-        if (tail.Length != 32) return false;
-        return tail.All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f');
+
+        // One segment is the legacy key; two is the per-upload take. Every
+        // segment must be 32 lowercase hex — nothing a question id or an
+        // attacker-supplied path could smuggle through.
+        var segments = tail.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        return segments.Length is 1 or 2
+            && segments.All(s =>
+                s.Length == 32
+                && s.All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f'));
     }
 }
 
@@ -147,12 +177,21 @@ public interface ISpeakingRecordingMetadataStore
     Task MarkAbandonedForQuestionAsync(
         ExamSessionId sessionId, string questionId, CancellationToken ct);
 
-    Task UpdateAfterUploadAsync(
+    /// <summary>
+    /// Moves a row from <see cref="SpeakingRecordingStatus.PendingUpload"/> to
+    /// <c>Uploaded</c>. <b>False means the row was no longer pending</b> — a
+    /// stale-abort pass or a concurrent complete got there first — and the
+    /// caller must treat its upload as gone, because the sweep may already
+    /// have removed its bytes.
+    /// </summary>
+    Task<bool> UpdateAfterUploadAsync(
         string uploadId, long sizeBytes, string checksumSha256, CancellationToken ct);
 
-    Task MarkLinkedAsync(string uploadId, DateTimeOffset at, CancellationToken ct);
+    /// <summary>False when the row is no longer in the <c>Uploaded</c> state.</summary>
+    Task<bool> MarkLinkedAsync(string uploadId, DateTimeOffset at, CancellationToken ct);
 
-    Task MarkAbandonedAsync(string uploadId, CancellationToken ct);
+    /// <summary>False when the row was already terminal (Linked or deleted).</summary>
+    Task<bool> MarkAbandonedAsync(string uploadId, CancellationToken ct);
 
     Task<IReadOnlyList<SpeakingRecordingMetadata>> ListPendingOlderThanAsync(
         DateTimeOffset olderThan, int limit, CancellationToken ct);
@@ -167,6 +206,19 @@ public interface ISpeakingRecordingMetadataStore
 
     Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanAsync(
         DateTimeOffset olderThan, int limit, CancellationToken ct);
+
+    /// <summary>
+    /// Rows the sweep may judge — Linked <i>and</i> Uploaded — older than the
+    /// cutoff, ordered by (createdAt, recordingId), at or after the cursor.
+    /// <b>Uploaded is in the list on purpose:</b> a crash between the bytes
+    /// being verified and the sheet being written strands a row with live
+    /// bytes in that state, and only the sweep can either recover it (the
+    /// sheet names it) or remove it (nothing does). The stable ordering is
+    /// the contract: a cursor over an unstable order can skip a row the sort
+    /// shuffled behind it.
+    /// </summary>
+    Task<IReadOnlyList<SpeakingRecordingMetadata>> ListOlderThanSweepableAsync(
+        DateTimeOffset olderThan, int limit, CancellationToken ct, StoredRecording? after);
 }
 
 public interface ISpeakingRecordingBlobStore
@@ -190,11 +242,28 @@ public interface ISpeakingRecordingBlobStore
         string objectKey, Stream content, string contentType, string checksumSha256,
         CancellationToken ct);
 
+    /// <summary>
+    /// Opens the stored bytes for server-side reading. <b>This is the port the
+    /// real checksum flows through</b> — object metadata is client-set, so a
+    /// hash computed over what HeadAsync echoes proves only that the client's
+    /// claim agrees with itself. Reading the bytes and hashing them here is
+    /// what verifies an upload. It is also the seam any speech-to-text adapter
+    /// will read through (the audit's D-item: the recording ports had no way
+    /// to hand audio back).
+    /// </summary>
+    Task<SpeakingRecordingObject?> OpenAsync(string objectKey, CancellationToken ct);
+
     Task DeleteAsync(string objectKey, CancellationToken ct);
 }
 
 public sealed record SpeakingRecordingObjectHead(
     long ContentLength, string ContentType, string? ChecksumSha256);
+
+public sealed record SpeakingRecordingObject(Stream Content, string ContentType, long Length)
+    : IDisposable
+{
+    public void Dispose() => Content.Dispose();
+}
 
 /// <summary>
 /// Opens a presigned upload for one Speaking answer.
@@ -240,13 +309,12 @@ public sealed class InitSpeakingRecording(
         SpeakingRecordingGate.EnsureUploadAllowed(
             session, version, command.QuestionId, clock.UtcNow);
 
-        var objectKey = SpeakingRecordingKey.For(command.SessionId, command.QuestionId);
-        var recordingId = SpeakingRecordingKey.RecordingIdFor(command.SessionId, command.QuestionId);
         var now = clock.UtcNow;
 
         // Re-record / retry: abandon any prior pending init for this question
-        // so a stale complete cannot race the new revision. The object key is
-        // derived, so the next PUT replaces bytes rather than orphaning them.
+        // so a stale complete cannot race the new revision. Each take now
+        // files under its own key, so the old take's stored bytes — the ones
+        // a filed answer may point at — are never in this PUT's path.
         await metadata.MarkAbandonedForQuestionAsync(command.SessionId, command.QuestionId, ct);
 
         if (command.SizeBytes > MultipartThresholdBytes)
@@ -256,7 +324,7 @@ public sealed class InitSpeakingRecording(
             // presigned row is created.
             return new InitSpeakingRecordingResult(
                 string.Empty,
-                recordingId,
+                SpeakingRecordingKey.RecordingIdFor(command.SessionId, command.QuestionId),
                 null,
                 now,
                 command.ContentType,
@@ -265,6 +333,13 @@ public sealed class InitSpeakingRecording(
         }
 
         var uploadId = Guid.NewGuid().ToString("N");
+
+        // One take, one key. Two takes at the same question never collide —
+        // which is what keeps a re-take's PUT from overwriting the audio an
+        // already-filed answer points at.
+        var objectKey = SpeakingRecordingKey.ForObject(
+            command.SessionId, command.QuestionId, uploadId);
+        var recordingId = objectKey[SpeakingRecordingKey.Prefix.Length..];
 
         DateTimeOffset? retention = storage.RetentionDays is { } days
             ? now.AddDays(days)
@@ -287,11 +362,24 @@ public sealed class InitSpeakingRecording(
             retention,
             null), ct);
 
+        // The presigned window cannot outlive the section: a link that survives
+        // the deadline is a window in which a learner answer can still be
+        // written to after the sheet is frozen. The floor keeps a deadline one
+        // second away from minting a zero-lifetime URL — the gate has already
+        // refused a past deadline, so the remainder is positive.
+        var ttl = UploadTtl;
+        if (session.Current?.DeadlineAt is { } deadlineAt)
+        {
+            var remaining = deadlineAt - now;
+            if (remaining < ttl)
+                ttl = remaining > TimeSpan.FromSeconds(1) ? remaining : TimeSpan.FromSeconds(1);
+        }
+
         var uploadUrl = blobs.CreatePresignedPutUrl(
-            objectKey, command.ContentType, command.ChecksumSha256.ToLowerInvariant(), UploadTtl);
+            objectKey, command.ContentType, command.ChecksumSha256.ToLowerInvariant(), ttl);
 
         return new InitSpeakingRecordingResult(
-            uploadId, recordingId, uploadUrl, now.Add(UploadTtl), command.ContentType,
+            uploadId, recordingId, uploadUrl, now.Add(ttl), command.ContentType,
             "presigned", MultipartThresholdBytes);
     }
 
@@ -302,7 +390,16 @@ public sealed class InitSpeakingRecording(
 }
 
 /// <summary>
-/// Verifies a private object via HEAD and links its id to the answer sheet.
+/// Verifies the stored bytes and links the take's id to the answer sheet.
+///
+/// <b>Verification reads the bytes, not the metadata.</b> Object metadata
+/// (<c>x-amz-meta-sha256</c>) is set by whoever held the presigned URL, so a
+/// check that compares the metadata against the init declaration verifies a
+/// client's claim against the same client's claim. The server opens the
+/// object, hashes it itself, and sniffs the head for an audio signature — the
+/// same rule the CMS media library applies to every upload. A take failing
+/// any of it is refused and its bytes removed: what stays behind must be
+/// either a filed answer or nothing.
 /// </summary>
 public sealed class CompleteSpeakingRecording(
     IExamCatalogue catalogue,
@@ -324,7 +421,7 @@ public sealed class CompleteSpeakingRecording(
         if (row.OwnerId != command.UserId || row.SessionId != command.SessionId)
             throw new SpeakingRecordingUploadNotFoundException();
 
-        if (row.Status is SpeakingRecordingStatus.Abandoned or SpeakingRecordingStatus.Linked)
+        if (row.Status is not SpeakingRecordingStatus.PendingUpload)
             throw new SpeakingRecordingUploadNotFoundException();
 
         var (session, version) = await sessions.LoadOwnedAsync(
@@ -338,25 +435,122 @@ public sealed class CompleteSpeakingRecording(
                 command.ChecksumSha256, row.ExpectedChecksumSha256, StringComparison.OrdinalIgnoreCase))
             throw new SpeakingRecordingChecksumMismatchException();
 
-        var head = await blobs.HeadAsync(row.ObjectKey, ct)
-            ?? throw new SpeakingRecordingVerificationFailedException();
-
-        if (head.ContentLength != command.SizeBytes
-            || !string.Equals(head.ContentType, row.ContentType, StringComparison.OrdinalIgnoreCase)
-            || !string.Equals(head.ChecksumSha256, row.ExpectedChecksumSha256, StringComparison.OrdinalIgnoreCase))
-            throw new SpeakingRecordingVerificationFailedException();
-
+        // <b>Declare the row mine before verifying, not after.</b> The
+        // stale-abort pass and a second complete both read pending rows; a
+        // conditional transition is what stops the loser from filing bytes
+        // the sweeper has already judged. False means the row changed under
+        // us — the upload is factually gone.
         var now = clock.UtcNow;
-        await metadata.UpdateAfterUploadAsync(
-            command.UploadId, head.ContentLength, row.ExpectedChecksumSha256!, ct);
+        var claimed = await metadata.UpdateAfterUploadAsync(
+            command.UploadId, command.SizeBytes, row.ExpectedChecksumSha256!, ct);
+        if (!claimed)
+        {
+            // <b>The row changed under us - the take is factually gone.</b> The
+            // sweeper that flipped it may not have reached the bytes yet, so
+            // this complete removes them: whatever is left is unfiled voice
+            // with no row claiming it.
+            try
+            {
+                await blobs.DeleteAsync(row.ObjectKey, ct);
+            }
+            catch (Exception)
+            {
+                // The refusal stands whether or not the tidying worked.
+            }
+
+            throw new SpeakingRecordingUploadNotFoundException();
+        }
 
         try
         {
+            var head = await blobs.HeadAsync(row.ObjectKey, ct)
+                ?? throw new SpeakingRecordingVerificationFailedException();
+
+            if (head.ContentLength != command.SizeBytes
+                || !string.Equals(head.ContentType, row.ContentType, StringComparison.OrdinalIgnoreCase))
+                throw new SpeakingRecordingVerificationFailedException();
+
+            // <b>The hash is computed here, over the bytes.</b> Whatever the
+            // stored metadata says, the object itself must hash to the value
+            // the learner declared at init.
+            var stored = await blobs.OpenAsync(row.ObjectKey, ct)
+                ?? throw new SpeakingRecordingVerificationFailedException();
+
+            string actualChecksum;
+            using (stored)
+            {
+                using var buffer = new MemoryStream();
+                await stored.Content.CopyToAsync(buffer, ct);
+                if (buffer.Length != command.SizeBytes)
+                    throw new SpeakingRecordingVerificationFailedException();
+
+                // The head bytes decide what the file is — magic bytes, never
+                // the declared type. A non-audio payload is refused however
+                // honestly its checksum was declared.
+                var head2 = buffer.ToArray();
+                var sniffed = MediaSniffer.Sniff(head2.AsSpan(0, Math.Min(MediaSniffer.ProbeLength, head2.Length)));
+                if (sniffed is not { } sniff || sniff.Kind != MediaKind.Audio)
+                    throw new SpeakingRecordingVerificationFailedException();
+
+                actualChecksum = Convert.ToHexString(SHA256.HashData(head2)).ToLowerInvariant();
+            }
+
+            if (!string.Equals(actualChecksum, row.ExpectedChecksumSha256, StringComparison.OrdinalIgnoreCase))
+                throw new SpeakingRecordingVerificationFailedException();
+
             await answers.SetAnswerAsync(
                 command.SessionId, ExamModule.Speaking, row.QuestionId, row.RecordingId, now, ct);
+
+            var linked = await metadata.MarkLinkedAsync(command.UploadId, now, ct);
+            if (!linked)
+            {
+                // The sweep raced the link and refused the row — its bytes are
+                // already gone. The sheet write above is the casualty: undo it
+                // by clearing the entry rather than leaving a dead pointer.
+                await answers.SetAnswerAsync(
+                    command.SessionId, ExamModule.Speaking, row.QuestionId, null, clock.UtcNow, ct);
+                throw new SpeakingRecordingUploadNotFoundException();
+            }
+
+            return row.RecordingId;
+        }
+        catch (SpeakingRecordingVerificationFailedException)
+        {
+            // <b>Every refused take's bytes go, and its row is retired.</b> A
+            // verification refusal leaves an object nothing will ever file -
+            // the upload window is dead to this take. Leaving either behind is
+            // an orphan holding a learner's voice; the sweep would reach it
+            // eventually, but clearing both here is immediate and free.
+            try
+            {
+                await blobs.DeleteAsync(row.ObjectKey, ct);
+            }
+            catch (Exception)
+            {
+                // The refusal stands whether or not the tidying worked.
+            }
+
+            try
+            {
+                await metadata.MarkAbandonedAsync(row.UploadId, ct);
+            }
+            catch (Exception)
+            {
+                // Same rule. The sweep is the backstop.
+            }
+
+            throw;
         }
         catch (SectionSheetClosedException)
         {
+            /*
+             * <b>Only this take's bytes go.</b> The id is per-upload, so the
+             * tidy-up cannot reach the audio an already-filed answer points
+             * at — under the shared derived key it deleted exactly the id the
+             * frozen answer held, which is how a lost race erased a submitted
+             * answer's voice. What is removed here is the refused take's own
+             * unfiled upload — the orphan this branch exists to prevent.
+             */
             try
             {
                 await recordings.DeleteAsync(row.RecordingId, ct);
@@ -368,9 +562,6 @@ public sealed class CompleteSpeakingRecording(
 
             throw;
         }
-
-        await metadata.MarkLinkedAsync(command.UploadId, now, ct);
-        return row.RecordingId;
     }
 }
 
@@ -389,6 +580,7 @@ public sealed class GetSpeakingRecordingPlaybackUrl(
     IExamSessionRepository sessions,
     ISpeakingRecordingBlobStore blobs,
     ISpeakingRecordingMetadataStore metadata,
+    IAnswerSheetStore answers,
     IClock clock)
 {
     /// <summary>
@@ -409,8 +601,24 @@ public sealed class GetSpeakingRecordingPlaybackUrl(
         await sessions.LoadOwnedAsync(catalogue, command.SessionId, command.UserId, ct);
 
         var rows = await metadata.ListBySessionAsync(command.SessionId, ct);
-        var row = rows.FirstOrDefault(r =>
-                r.QuestionId == command.QuestionId && r.Status == SpeakingRecordingStatus.Linked)
+        var linked = rows
+            .Where(r => r.QuestionId == command.QuestionId && r.Status == SpeakingRecordingStatus.Linked)
+            .ToArray();
+
+        // <b>Resolve through the sheet.</b> Takes are keyed per upload now, so
+        // more than one take can be Linked at a question — the re-take that
+        // filed after the first. What the learner recorded <i>last and
+        // submitted</i> is what the sheet names, and that is the take that
+        // must play — whichever row happens to enumerate first.
+        var sheet = await answers.ReadAsync(command.SessionId, ExamModule.Speaking, ct);
+        var filedId = sheet.Answers.GetValueOrDefault(command.QuestionId);
+
+        var row = (filedId is { } id
+                ? linked.FirstOrDefault(r => r.RecordingId == id)
+                : null)
+            ?? linked
+                .OrderByDescending(r => r.LinkedAt ?? r.CreatedAt)
+                .FirstOrDefault()
             ?? throw new SpeakingRecordingUploadNotFoundException();
 
         var url = blobs.CreatePresignedGetUrl(row.ObjectKey, PlaybackTtl);

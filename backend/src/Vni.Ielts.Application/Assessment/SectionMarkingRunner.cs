@@ -176,6 +176,7 @@ public sealed class SectionMarkingRunner(
                 $"No rubric is configured for {unit.Module}. A rubric records which criteria were "
                 + "used and where their descriptors came from; neither can be assumed. → H-8a");
 
+        IReadOnlyList<SpeechTranscript>? partTranscripts;
         string? submission;
 
         if (unit.Module == ExamModule.Speaking)
@@ -203,7 +204,16 @@ public sealed class SectionMarkingRunner(
             // evaluator — and reporting whichever was checked first would make
             // the more tractable one invisible. Ordering by which is further
             // from being solved puts the real answer in front of whoever reads it.
-            submission = await transcripts.ForAsync(sessionId, recordings, ct);
+            partTranscripts = await transcripts.ForAsync(sessionId, recordings, ct);
+
+            // One submission out of many parts: the evaluator grades the whole
+            // performance, and the per-part timings ride on the transcript
+            // records when the evaluator learns to read them (W9).
+            submission = partTranscripts is { Count: > 0 }
+                ? string.Join(
+                    "\n\n",
+                    partTranscripts.Where(t => !string.IsNullOrWhiteSpace(t.Text)).Select(t => t.Text))
+                : null;
 
             if (string.IsNullOrWhiteSpace(submission))
                 return Pending(
@@ -376,8 +386,14 @@ public interface ITranscriptSource
     /// The list is in the order the parts were asked, because a Speaking band
     /// is one judgement over the whole performance and the discussion does not
     /// read the same before the long turn.
+    ///
+    /// <b>Returns transcripts, not text — and timings with them.</b> The old
+    /// shape (<c>Task&lt;string?&gt;</c>) discarded word timings at the
+    /// boundary; fluency marking is arithmetic on those timings, and
+    /// pronunciation assessment reads the words as reference text. Null means
+    /// no recogniser is wired — the <c>AwaitingVoiceProvider</c> case.
     /// </summary>
-    Task<string?> ForAsync(
+    Task<IReadOnlyList<SpeechTranscript>?> ForAsync(
         ExamSessionId sessionId, IReadOnlyList<SpeakingRecording> recordings, CancellationToken ct);
 }
 
